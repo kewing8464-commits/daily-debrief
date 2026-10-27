@@ -31,3 +31,10 @@ test('October 2026 starts on Thursday', () => {
 test('February 2028 has 29 days', () => {
   expect(monthGrid(2028, 2).filter(Boolean).length).toBe(29)
 })
+
+test('shiftMonth steps across year boundaries', async () => {
+  const { shiftMonth } = await import('@/lib/dates')
+  expect(shiftMonth('2026-10', 1)).toBe('2026-11')
+  expect(shiftMonth('2026-12', 1)).toBe('2027-01')
+  expect(shiftMonth('2026-01', -1)).toBe('2025-12')
+})

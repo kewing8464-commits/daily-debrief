@@ -31,3 +31,10 @@ export function monthGrid(year: number, month: number): (string | null)[] {
   for (let d = 1; d <= daysInMonth; d++) cells.push(toIso(year, month, d))
   return cells
 }
+
+/** 'YYYY-MM' moved by `delta` months. */
+export function shiftMonth(ym: string, delta: number): string {
+  const [y, m] = ym.split('-').map(Number)
+  const t = new Date(Date.UTC(y, m - 1 + delta, 1))
+  return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}`
+}
