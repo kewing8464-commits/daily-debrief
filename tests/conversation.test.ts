@@ -82,3 +82,10 @@ test('quick replies come from the topic list', () => {
   expect(q.topic).toBe('beers')
   expect(q.quickReplies).toEqual(['None', '1-2', '3-4', '5+'])
 })
+
+test('turn requests leave room for reasoning models (Groq rejects small limits with 400)', async () => {
+  let seen = 0
+  const spy: ChatModel = { complete: async (input) => { seen = input.maxTokens ?? 0; return JSON.stringify({ covered: [], question: 'q' }) } }
+  await nextTurn(startConversation(), 'coffee', spy)
+  expect(seen).toBeGreaterThanOrEqual(1000)
+})

@@ -52,7 +52,7 @@ export async function summarizeTranscript(turns: Turn[], score: number, model: C
   for (let attempt = 0; attempt < 2; attempt++) {
     let raw: string
     try {
-      raw = await model.complete({ system: SYSTEM, json: true, maxTokens: 1200, messages: [{ role: 'user', content: transcript }] })
+      raw = await model.complete({ system: SYSTEM, json: true, maxTokens: 2500, messages: [{ role: 'user', content: transcript }] })
     } catch (err) {
       if (err instanceof AiUnavailableError) break
       throw err

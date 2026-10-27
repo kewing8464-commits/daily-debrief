@@ -56,7 +56,7 @@ export async function nextTurn(
       const raw = await model.complete({
         system: SYSTEM,
         json: true,
-        maxTokens: 200,
+        maxTokens: 1000, // reasoning models spend tokens thinking before the JSON
         messages: [{
           role: 'user',
           content: JSON.stringify({
