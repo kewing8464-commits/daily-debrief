@@ -38,3 +38,8 @@ export function shiftMonth(ym: string, delta: number): string {
   const t = new Date(Date.UTC(y, m - 1 + delta, 1))
   return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}`
 }
+
+/** The dates of a 'YYYY-MM' month as a half-open range: from <= day < before. */
+export function monthRange(ym: string): { from: string; before: string } {
+  return { from: `${ym}-01`, before: `${shiftMonth(ym, 1)}-01` }
+}

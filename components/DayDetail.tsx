@@ -9,7 +9,7 @@ import { Card } from './Card'
 import { ScoreChip } from './ScoreChip'
 import { SummaryForm } from './SummaryForm'
 
-type Day = { day_date: string; score: number; summary: DaySummary; transcript: Turn[]; mode: 'type' | 'talk'; duration_sec: number | null; timezone: string }
+type Day = { day_date: string; score: number; summary: DaySummary; transcript: Turn[]; mode: 'type' | 'talk'; duration_sec: number | null; timezone: string; updated_at: string }
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null
@@ -45,8 +45,9 @@ export function DayDetail({ date, day }: { date: string; day: Day | null }) {
     const res = await fetch(`/api/days/${date}`, {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ transcript: day!.transcript, summary: draft, score: draft!.score, mode: day!.mode, durationSec: day!.duration_sec ?? 0, timezone: day!.timezone, status: 'saved' }),
+      body: JSON.stringify({ transcript: day!.transcript, summary: draft, score: draft!.score, mode: day!.mode, durationSec: day!.duration_sec ?? 0, timezone: day!.timezone, status: 'saved', expectedUpdatedAt: day!.updated_at }),
     })
+    if (res.status === 409) return setError('This day changed on another screen. Reload to see the latest, then edit again.')
     if (!res.ok) return setError('Saving failed, try again.')
     setEditing(false)
     router.refresh()

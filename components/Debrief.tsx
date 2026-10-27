@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { startConversation, type ConversationState, type NextQuestion, type Turn } from '@/lib/conversation'
 import { debriefDateFor } from '@/lib/dates'
-import { appendSession, DRAFT_KEY, restoreDraft, serializeDraft } from '@/lib/draft'
-import type { DaySummary } from '@/lib/summary'
+import { appendSession, createDraftQueue, DRAFT_KEY, restoreDraft, serializeDraft } from '@/lib/draft'
+import { emptySummary, mergeAddedSummary, type DaySummary } from '@/lib/summary'
 import { TOPICS } from '@/lib/topics'
 import { Bubble } from './Bubble'
 import { QuickReplies } from './QuickReplies'
@@ -13,7 +13,9 @@ import { ScorePicker } from './ScorePicker'
 import { SummaryForm } from './SummaryForm'
 
 type Phase = 'loading' | 'chat' | 'score' | 'summarizing' | 'review' | 'saving'
-type SavedDay = { transcript: Turn[]; score: number | null; summary: DaySummary | null; status: 'draft' | 'saved' }
+type SavedDay = { transcript: Turn[]; score: number | null; summary: DaySummary | null; status: 'draft' | 'saved'; updated_at: string; duration_sec: number | null }
+
+const MAX_ANSWER = 4000
 
 const ADD_QUESTION = 'Anything you want to add to today?'
 
@@ -43,6 +45,11 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
   const [aiNote, setAiNote] = useState('')
   const [error, setError] = useState('')
   const started = useRef(0)
+  const drafts = useRef(createDraftQueue())
+  // The version of the day this screen loaded; a save is refused if someone saved since.
+  const loadedVersion = useRef<string | null>(null)
+  const [loadTry, setLoadTry] = useState(0)
+  const [offline, setOffline] = useState(false)
   const bottom = useRef<HTMLDivElement>(null)
 
   // Work out which date we are debriefing, then resume a draft, add to a saved day, or start fresh.
@@ -51,11 +58,20 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
     const today = debriefDateFor(new Date(), zone)
     const d = requestedDate ?? today
     ;(async () => {
-      const res = await fetch(`/api/days/${d}`)
-      const row: SavedDay | null = res.ok ? await res.json() : null
+      let row: SavedDay | null = null
+      try {
+        const res = await fetch(`/api/days/${d}`)
+        if (!res.ok) throw new Error(`load ${res.status}`)
+        row = await res.json()
+        setOffline(false)
+      } catch {
+        // Can't tell whether this day was already saved: resume locally, but don't allow saving blind.
+        setOffline(true)
+      }
       setTz(zone)
       setDate(d)
       started.current = Date.now()
+      loadedVersion.current = row?.updated_at ?? null
       if (row?.status === 'saved') {
         setSaved(row)
         setScore(row.score)
@@ -71,7 +87,7 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
       }
       setPhase('chat')
     })()
-  }, [requestedDate])
+  }, [requestedDate, loadTry])
 
   useEffect(() => bottom.current?.scrollIntoView({ behavior: 'smooth' }), [state.turns.length, phase])
 
@@ -80,11 +96,8 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
     // Every 3 answers, also save a draft to the server (ignored if the day is already saved).
     const answers = s.turns.filter((t) => t.role === 'user').length
     if (!saved && answers > 0 && answers % 3 === 0) {
-      fetch(`/api/days/${date}`, {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ transcript: s.turns, summary: null, score: null, mode, durationSec: Math.round((Date.now() - started.current) / 1000), timezone: tz, status: 'draft' }),
-      }).catch(() => {})
+      const body = JSON.stringify({ transcript: s.turns, summary: null, score: null, mode, durationSec: Math.round((Date.now() - started.current) / 1000), timezone: tz, status: 'draft' })
+      drafts.current.push(() => fetch(`/api/days/${date}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body }))
     }
   }
 
@@ -104,6 +117,10 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ state, answer: text.trim(), skip }),
       })
+      if (res.status === 400) {
+        setAnswer(text)
+        return setError('That answer is too long to send in one go. Try splitting it up.')
+      }
       if (!res.ok) throw new Error(`turn ${res.status}`)
       const r = (await res.json()) as { state: ConversationState; next: NextQuestion; usedAi: boolean }
       setState(r.state)
@@ -127,11 +144,13 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ turns, score: n }),
       })
+      if (!res.ok) throw new Error(`summarize ${res.status}`)
       const r = (await res.json()) as { summary: DaySummary; usedAi: boolean }
-      setSummary(r.summary)
-      setAiNote(r.usedAi ? '' : "The AI couldn't summarize this one, so fill in anything you want. Your full conversation is saved either way.")
+      // Adding to a saved day: the saved summary (with any hand edits) stays the base.
+      setSummary(saved?.summary ? mergeAddedSummary(saved.summary, r, n) : r.summary)
+      setAiNote(r.usedAi ? '' : saved ? "The AI couldn't update the summary, so your saved one is kept. Edit anything you want." : "The AI couldn't summarize this one, so fill in anything you want. Your full conversation is saved either way.")
     } catch {
-      setSummary({ score: n, sleep: {}, food: [], workout: { did: false }, alcohol: { drinks: 0 }, cannabis: { used: false }, work: {}, people: [], tags: [], oneLine: '' })
+      setSummary(saved?.summary ? { ...saved.summary, score: n } : emptySummary(n))
       setAiNote("Couldn't reach the server for a summary. Fill in anything you want and save.")
     }
     setPhase('review')
@@ -140,22 +159,32 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
   async function save() {
     if (!summary) return
     setPhase('saving')
+    setError('')
     const turns = saved ? appendSession(saved, state.turns) : state.turns
-    const res = await fetch(`/api/days/${date}`, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        transcript: turns,
-        summary,
-        score: summary.score,
-        mode,
-        durationSec: Math.round((Date.now() - started.current) / 1000),
-        timezone: tz,
-        status: 'saved',
-      }),
-    })
-    if (!res.ok) {
-      setError('Saving failed. Your answers are still here, try again in a moment.')
+    const thisSession = Math.round((Date.now() - started.current) / 1000)
+    try {
+      await drafts.current.flush() // a slow background draft must not land after this save
+      const res = await fetch(`/api/days/${date}`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          transcript: turns,
+          summary,
+          score: summary.score,
+          mode,
+          durationSec: (saved?.duration_sec ?? 0) + thisSession,
+          timezone: tz,
+          status: 'saved',
+          expectedUpdatedAt: loadedVersion.current,
+        }),
+      })
+      if (res.status === 409) {
+        setError('This day was saved from another screen. Your answers are still here: reload to add them to the saved day.')
+        return setPhase('review')
+      }
+      if (!res.ok) throw new Error(`save ${res.status}`)
+    } catch {
+      setError("Couldn't save. Check your connection, your answers are still here. Tap Save again in a moment.")
       return setPhase('review')
     }
     writeStorage(null)
@@ -180,6 +209,12 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
         <p className="mb-3 rounded-card border border-line bg-surface p-3 text-sm text-muted">
           Voice is coming in the next update. For now, tap the 🎙 on your iPhone keyboard to dictate your answers.
         </p>
+      )}
+      {offline && (
+        <div className="mb-3 rounded-card border border-line bg-surface p-3 text-sm">
+          <p className="text-[#f2c9b4]">You seem to be offline. Your answers so far are kept on this phone.</p>
+          <button onClick={() => { setPhase('loading'); setLoadTry((n) => n + 1) }} className="mt-2 font-semibold text-accent">Try again</button>
+        </div>
       )}
       <div className="mb-2 flex items-center justify-between text-xs text-muted">
         <span>{saved ? 'Adding to today' : progress}</span>
@@ -223,6 +258,7 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
               onChange={(e) => setAnswer(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(answer) } }}
               placeholder="Type your answer…"
+              maxLength={MAX_ANSWER}
               className="max-h-32 flex-1 resize-none bg-transparent py-1.5 text-base outline-none"
             />
             <button disabled={busy || !answer.trim()} className="h-9 w-9 shrink-0 rounded-full bg-accent font-black text-[#1e1714] disabled:opacity-40">↑</button>

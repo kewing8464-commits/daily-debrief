@@ -50,7 +50,7 @@ export default async function Home() {
           <p className="mt-1 mb-3 font-serif text-xl text-accent">Ready when you are</p>
         )}
         <Link
-          href="/debrief"
+          href={`/debrief?date=${today}`}
           className={`mt-3 block rounded-card py-3 text-center font-bold ${todayRow ? 'border border-accent text-accent' : 'bg-accent text-[#1e1714]'}`}
         >
           {todayRow ? 'Add to today' : "Start tonight's debrief"}

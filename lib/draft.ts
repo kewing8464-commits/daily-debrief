@@ -30,3 +30,20 @@ export function appendSession(saved: { transcript: Turn[] }, session: Turn[]): T
   if (saved.transcript.length === 0) return [...session]
   return [...saved.transcript, DIVIDER, ...session]
 }
+
+/**
+ * Background draft saves are fire-and-forget, but the final save must not race them:
+ * a slow draft landing after the save would overwrite it. flush() waits for every
+ * pending draft write (ignoring their failures).
+ */
+export function createDraftQueue() {
+  let pending: Promise<unknown> = Promise.resolve()
+  return {
+    push(write: () => Promise<unknown>) {
+      pending = pending.then(write).catch(() => {})
+    },
+    async flush(): Promise<void> {
+      await pending.catch(() => {})
+    },
+  }
+}

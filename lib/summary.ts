@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AiUnavailableError, type ChatModel } from '@/lib/ai/provider'
+import type { ChatModel } from '@/lib/ai/provider'
 import type { Turn } from '@/lib/conversation'
 
 const text = z.string().max(2000)
@@ -123,9 +123,9 @@ export async function summarizeTranscript(turns: Turn[], score: number, model: C
     let raw: string
     try {
       raw = await model.complete({ system: SUMMARY_SYSTEM, json: true, maxTokens: 2500, messages: [{ role: 'user', content: transcript }] })
-    } catch (err) {
-      if (err instanceof AiUnavailableError) break
-      throw err
+    } catch {
+      // Unavailable or any unexpected failure: the day still saves with an empty summary.
+      break
     }
     try {
       const summary = cleanModelSummary(JSON.parse(raw), score)
@@ -135,4 +135,41 @@ export async function summarizeTranscript(turns: Turn[], score: number, model: C
     }
   }
   return { summary: emptySummary(score), usedAi: false }
+}
+
+const filled = (v: unknown) => v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0)
+
+function unionBy<T>(a: T[], b: T[], key: (x: T) => string): T[] {
+  const seen = new Set(a.map(key))
+  return [...a, ...b.filter((x) => !seen.has(key(x)))]
+}
+
+/**
+ * Adding to an already-saved day. The saved summary (including hand edits) is the base;
+ * a fresh AI summary of the whole day only fills gaps, adds new list items, and can raise
+ * the drink count. If the AI did not help, the saved summary is kept as is.
+ */
+export function mergeAddedSummary(saved: DaySummary, fresh: { summary: DaySummary; usedAi: boolean }, score: number): DaySummary {
+  if (!fresh.usedAi) return { ...saved, score }
+  const f = fresh.summary
+  const pick = <K extends keyof DaySummary>(k: K): DaySummary[K] => (filled(saved[k]) ? saved[k] : f[k])
+  return {
+    ...saved,
+    score,
+    sleep: Object.keys(saved.sleep).length ? saved.sleep : f.sleep,
+    morning: pick('morning'),
+    did: pick('did'),
+    food: unionBy(saved.food, f.food, (x) => x.item.toLowerCase()),
+    workout: saved.workout.did ? saved.workout : f.workout,
+    alcohol: f.alcohol.drinks > saved.alcohol.drinks ? f.alcohol : saved.alcohol,
+    cannabis: saved.cannabis.used ? saved.cannabis : f.cannabis,
+    work: Object.keys(saved.work).length ? saved.work : f.work,
+    people: unionBy(saved.people, f.people, (x) => x.name.toLowerCase()),
+    fun: pick('fun'),
+    happy: pick('happy'),
+    annoyed: pick('annoyed'),
+    standout: pick('standout'),
+    tags: [...new Set([...saved.tags, ...f.tags])],
+    oneLine: f.oneLine || saved.oneLine,
+  }
 }

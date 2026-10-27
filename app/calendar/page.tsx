@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { TabBar } from '@/components/TabBar'
-import { debriefDateFor, monthGrid, shiftMonth } from '@/lib/dates'
+import { debriefDateFor, monthGrid, monthRange, shiftMonth } from '@/lib/dates'
 import { scoreColor } from '@/lib/design'
 import { getUser } from '@/lib/supabase/server'
 
@@ -15,13 +15,15 @@ export default async function CalendarPage({ searchParams }: PageProps<'/calenda
   const [y, m] = ym.split('-').map(Number)
   const cells = monthGrid(y, m)
 
-  const { data: rows } = await supabase
+  const range = monthRange(ym)
+  const { data: rows, error } = await supabase
     .from('days')
     .select('day_date, score')
     .eq('user_id', user.id)
     .eq('status', 'saved')
-    .gte('day_date', `${ym}-01`)
-    .lte('day_date', `${ym}-31`)
+    .gte('day_date', range.from)
+    .lt('day_date', range.before)
+  if (error) throw new Error(`Could not load the calendar: ${error.message}`)
   const scores = new Map((rows ?? []).map((r) => [r.day_date as string, r.score as number]))
   const saved = [...scores.values()]
   const avg = saved.length ? (saved.reduce((a, b) => a + b, 0) / saved.length).toFixed(1) : null

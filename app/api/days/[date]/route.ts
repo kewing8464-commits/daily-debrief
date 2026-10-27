@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { saveConflict } from '@/lib/days'
 import { TurnSchema } from '@/lib/schemas'
 import { DaySummarySchema } from '@/lib/summary'
 import { getUser } from '@/lib/supabase/server'
@@ -13,6 +14,9 @@ const Body = z.object({
   durationSec: z.number().int().min(0).max(24 * 3600),
   timezone: z.string().min(1).max(64),
   status: z.enum(['draft', 'saved']),
+  // The updated_at of the day this screen loaded (null if there was none). Guards against
+  // overwriting a day saved from another screen since then.
+  expectedUpdatedAt: z.string().nullable().default(null),
 })
 
 export async function GET(_req: Request, ctx: RouteContext<'/api/days/[date]'>) {
@@ -37,10 +41,10 @@ export async function PUT(req: Request, ctx: RouteContext<'/api/days/[date]'>) {
   if (b.status === 'saved' && (b.score === null || b.summary === null)) {
     return Response.json({ error: 'A saved day needs a score and a summary' }, { status: 400 })
   }
-  // A background draft must never overwrite a day that is already saved.
-  if (b.status === 'draft') {
-    const { data: existing } = await supabase.from('days').select('status').eq('user_id', user.id).eq('day_date', date).maybeSingle()
-    if (existing?.status === 'saved') return Response.json({ skipped: 'day already saved' }, { status: 409 })
+  // Never overwrite a saved day blindly: drafts never touch it, and saves must have seen its latest version.
+  const { data: existing } = await supabase.from('days').select('status, updated_at').eq('user_id', user.id).eq('day_date', date).maybeSingle()
+  if (saveConflict(existing, { status: b.status, expectedUpdatedAt: b.expectedUpdatedAt })) {
+    return Response.json({ error: 'This day was saved from another screen. Reload to add to it.' }, { status: 409 })
   }
   const { data, error } = await supabase
     .from('days')

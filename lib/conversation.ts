@@ -1,4 +1,4 @@
-import { AiUnavailableError, type ChatModel } from '@/lib/ai/provider'
+import type { ChatModel } from '@/lib/ai/provider'
 import { SCORE_QUESTION, TOPICS, TOPIC_IDS, type TopicId } from '@/lib/topics'
 
 export type Turn = { role: 'assistant' | 'user'; text: string; topic?: TopicId | 'score' }
@@ -65,15 +65,15 @@ export async function nextTurn(
           }),
         }],
       })
-      const parsed = JSON.parse(raw) as { covered?: unknown; nextTopic?: unknown; question?: unknown }
-      if (!Array.isArray(parsed.covered) || typeof parsed.question !== 'string' || !parsed.question.trim()) {
+      const parsed = (JSON.parse(raw) ?? {}) as { covered?: unknown; nextTopic?: unknown; question?: unknown }
+      if (typeof parsed !== 'object' || !Array.isArray(parsed.covered) || typeof parsed.question !== 'string' || !parsed.question.trim()) {
         throw new Error('bad shape')
       }
       for (const id of parsed.covered) if (typeof id === 'string' && TOPIC_IDS.has(id)) covered.add(id as TopicId)
       aiQuestion = { topic: typeof parsed.nextTopic === 'string' ? parsed.nextTopic : undefined, text: parsed.question.trim() }
       usedAi = true
-    } catch (err) {
-      if (!(err instanceof AiUnavailableError) && !(err instanceof SyntaxError) && (err as Error).message !== 'bad shape') throw err
+    } catch {
+      // Unavailable, junk JSON, or anything unexpected: the script carries on.
     }
   }
 
