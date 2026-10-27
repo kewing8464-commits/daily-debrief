@@ -13,7 +13,10 @@ export default function SetupPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone), [])
+  // Read the phone's time zone after mount (the server renders without it).
+  useEffect(() => {
+    queueMicrotask(() => setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone))
+  }, [])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,7 +41,7 @@ export default function SetupPage() {
   const input = 'w-full rounded-card border border-line bg-bg px-3 py-3 text-base outline-none focus:border-accent'
   return (
     <main className="safe-top flex flex-1 flex-col justify-center px-5 pb-10">
-      <h1 className="font-serif text-3xl leading-tight">Let's set you up</h1>
+      <h1 className="font-serif text-3xl leading-tight">Let&apos;s set you up</h1>
       <p className="mt-1 mb-6 text-muted">Takes ten seconds. You can change this later.</p>
       <Card>
         <form onSubmit={submit} className="flex flex-col gap-4">
