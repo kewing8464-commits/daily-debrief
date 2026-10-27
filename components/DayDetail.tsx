@@ -55,7 +55,7 @@ export function DayDetail({ date, day }: { date: string; day: Day | null }) {
   const s = day.summary
   const sleep = [s.sleep.bedtime && `asleep ${s.sleep.bedtime}`, s.sleep.wake && `up ${s.sleep.wake}`, s.sleep.hours && `${s.sleep.hours}h`].filter(Boolean).join(' · ')
   const workout = s.workout.did ? [s.workout.type || 'yes', s.workout.minutes && `${s.workout.minutes} min`].filter(Boolean).join(' · ') : null
-  const work = [s.work.meetings !== undefined && `${s.work.meetings} meetings`, s.work.good, s.work.bad].filter(Boolean).join(' · ')
+  const work = [s.work.meetings !== undefined && `${s.work.meetings} ${s.work.meetings === 1 ? "meeting" : "meetings"}`, s.work.good, s.work.bad].filter(Boolean).join(' · ')
 
   return (
     <>

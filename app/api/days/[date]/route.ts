@@ -22,8 +22,8 @@ export async function GET(_req: Request, ctx: RouteContext<'/api/days/[date]'>) 
   if (!user) return Response.json({ error: 'Not signed in' }, { status: 401 })
   const { data, error } = await supabase.from('days').select('*').eq('user_id', user.id).eq('day_date', date).maybeSingle()
   if (error) return Response.json({ error: error.message }, { status: 500 })
-  if (!data) return Response.json({ error: 'Not found' }, { status: 404 })
-  return Response.json(data)
+  // No debrief yet for this date is a normal answer, not an error.
+  return Response.json(data ?? null)
 }
 
 export async function PUT(req: Request, ctx: RouteContext<'/api/days/[date]'>) {
