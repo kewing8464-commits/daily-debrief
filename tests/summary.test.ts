@@ -97,3 +97,15 @@ test('an unknown feeling drops just that person', async () => {
   const r = await summarizeTranscript(turns, 8, scripted(JSON.stringify({ people: [{ name: 'Jake', feeling: 'annoyed' }, { name: 'Dad', feeling: 'positive' }] })))
   expect(r.summary.people).toEqual([{ name: 'Dad', feeling: 'positive' }])
 })
+
+test('quick-reply ranges become numbers: "1-2" is 1.5, "5+" is 5', async () => {
+  const a = await summarizeTranscript(turns, 8, scripted(JSON.stringify({ alcohol: { drinks: '1-2', kind: 'beer' } })))
+  expect(a.summary.alcohol).toEqual({ drinks: 1.5, kind: 'beer' })
+  const b = await summarizeTranscript(turns, 8, scripted(JSON.stringify({ alcohol: { drinks: '5+' } })))
+  expect(b.summary.alcohol.drinks).toBe(5)
+})
+
+test('a workout type or duration means they worked out, whatever "did" says', async () => {
+  const r = await summarizeTranscript(turns, 8, scripted(JSON.stringify({ workout: { did: false, type: 'lifting', minutes: 45 } })))
+  expect(r.summary.workout).toEqual({ did: true, type: 'lifting', minutes: 45 })
+})

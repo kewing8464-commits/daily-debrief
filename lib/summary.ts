@@ -42,9 +42,14 @@ export function emptySummary(score: number): DaySummary {
 type Obj = Record<string, unknown>
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v)
 const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 2000) : undefined)
+// Numbers may arrive as "45", a quick-reply range like "1-2" (midpoint), or "5+" (the floor).
 const num = (v: unknown) => {
-  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN
-  return Number.isFinite(n) ? n : undefined
+  if (typeof v === 'number') return Number.isFinite(v) ? v : undefined
+  if (typeof v !== 'string') return undefined
+  const range = v.trim().match(/^(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)$/)
+  if (range) return (Number(range[1]) + Number(range[2])) / 2
+  const n = Number(v.trim().replace(/\+$/, ''))
+  return v.trim() !== '' && Number.isFinite(n) ? n : undefined
 }
 const bool = (v: unknown) => (typeof v === 'boolean' ? v : v === 'yes' || v === 'true' ? true : v === 'no' || v === 'false' ? false : undefined)
 const strList = (v: unknown) => (Array.isArray(v) ? v.map(str).filter((x): x is string => !!x) : undefined)
@@ -67,7 +72,12 @@ export function cleanModelSummary(raw: unknown, score: number): DaySummary | nul
     food: Array.isArray(o.food)
       ? o.food.filter(isObj).map((f) => prune({ item: str(f.item), amount: str(f.amount) })).filter((f) => f.item)
       : [],
-    workout: prune({ did: bool(workout.did) ?? false, type: str(workout.type), minutes: num(workout.minutes) }),
+    workout: prune({
+      // Models sometimes say did: false next to "lifting, 45 min"; the details win.
+      did: str(workout.type) !== undefined || (num(workout.minutes) ?? 0) > 0 ? true : bool(workout.did) ?? false,
+      type: str(workout.type),
+      minutes: num(workout.minutes),
+    }),
     alcohol: prune({ drinks: num(alcohol.drinks) ?? 0, kind: str(alcohol.kind) }),
     cannabis: prune({ used: bool(cannabis.used) ?? false, amount: str(cannabis.amount) }),
     work: prune({
@@ -95,12 +105,16 @@ export function cleanModelSummary(raw: unknown, score: number): DaySummary | nul
 export const SUMMARY_SYSTEM = `You turn a nightly debrief conversation into a JSON record of the person's day.
 Only record what the person actually said. Never guess a number they did not say. Keep amounts in their own words.
 Omit any field they did not talk about. Text fields are short descriptions in their words (never true/false). Numbers are plain numbers.
-Return JSON only, with these optional keys:
-sleep {bedtime, wake, hours}, morning, did, food [{item, amount}], workout {did, type, minutes},
-alcohol {drinks, kind}, cannabis {used, amount}, work {meetings, good, bad, enjoyed[], disliked[]},
-people [{name, feeling: positive|negative|neutral}], fun, happy, annoyed, standout,
-tags [short lowercase words useful for spotting patterns, e.g. "outdoors", "gym", "showing"],
-oneLine (one sentence recap in their voice, first person, no em dashes).`
+Return JSON only. Fill every key the conversation touches:
+- sleep {bedtime, wake, hours}: when they fell asleep last night and woke up; hours only if stated or clearly implied.
+- morning: how the day started. did: the main things they did today.
+- food [{item, amount}]: every food or drink they ate, one item each; amount only if they said it.
+- workout {did, type, minutes}. alcohol {drinks (number), kind}. cannabis {used, amount}.
+- work {meetings (number), good, bad, enjoyed[], disliked[]}: meetings and work tasks they liked or did not.
+- people [{name, feeling: positive|negative|neutral}]: everyone they mentioned spending time with.
+- fun: fun things they did. happy: what made them happy. annoyed: what bothered or annoyed them. standout: anything cool or memorable.
+- tags: short lowercase words useful for spotting patterns, e.g. "outdoors", "gym", "showing", "hunting".
+- oneLine: one sentence recap in their voice, first person, no em dashes.`
 
 /** Structured day from the transcript. Falls back to an empty summary (score kept) if the AI cannot help. */
 export async function summarizeTranscript(turns: Turn[], score: number, model: ChatModel): Promise<{ summary: DaySummary; usedAi: boolean }> {
