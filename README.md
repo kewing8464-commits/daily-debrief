@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Daily Debrief
 
-## Getting Started
+A five-minute nightly journal with an AI that interviews you about your day: what you ate, how you slept, workouts, beers, weed, work, people, highs and lows. Every debrief becomes a structured day with a 1 to 10 score, so over time you can see what your good days have in common.
 
-First, run the development server:
+Built as a free web app you install to your iPhone home screen.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What works (Milestone 1)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Sign up, pick your nightly debrief time
+- Typed debrief with an AI interviewer that skips what you already covered (scripted questions keep going if the AI is down)
+- Quick-tap answers, Skip, End early, 1 to 10 score, review and edit the summary, save
+- Picks up where you left off if the app closes mid-debrief; reopening a saved day adds to it
+- Home (tonight's status, week bars, streak, sleep average), Calendar, Day view with edit, Settings, data export
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Coming next: connect your own AI (Claude, ChatGPT) to your journal, voice, notifications, nutrition estimates, monthly reports.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+1. **Supabase** (free): create a project, then in the SQL editor run `supabase/migrations/0001_init.sql`. In Authentication > Sign In / Providers > Email, turn off "Confirm email".
+2. **Groq** (free): create an API key at console.groq.com. In Settings > Data Controls, turn on Zero Data Retention.
+3. Copy `.env.local.example` to `.env.local` and fill in the values. Never commit `.env.local`.
+4. `npm install`, then `npm run dev` and open http://localhost:3000.
 
-To learn more about Next.js, take a look at the following resources:
+Check that row-level security works: `npx tsx --env-file=.env.local scripts/check-rls.ts` should print `RLS OK`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Install on iPhone
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open the app's URL in Safari, tap Share, then **Add to Home Screen**. Open it from the icon.
 
-## Deploy on Vercel
+## Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `npm test` runs the unit tests (Vitest).
+- Business logic lives in `lib/` (pure functions, tested). Pages in `app/` stay thin.
+- All AI calls go through `lib/ai/provider.ts` (`ChatModel`), so the provider can be swapped.
+- Design tokens come from `design/chosen-design.json`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Design and plans: `docs/superpowers/specs/` and `docs/superpowers/plans/`.
