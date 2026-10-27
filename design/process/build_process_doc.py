@@ -298,6 +298,19 @@ p('At most two a night, never guilt-trippy, and private on the lock screen. If I
 image('spec-notifications-0.png', 6.0, 'The nightly reminder, the follow-up, the app badge, and reminder settings with pause.')
 page_break()
 
+doc.add_heading('7.13 Finding the app\'s voice', 2)
+p('Once every screen was designed, the wording still felt polite but bland. I wanted it cooler and more '
+  'inviting, like a "vibe check." I compared four voices on the same moments and picked a chill-friend '
+  'voice for the fun parts, with plain, clear words for settings, errors and anything private.')
+image('voice-options.png', 6.5, 'Four voices compared: chill friend, hype coach, laid-back western, and a mix.')
+image('voice-before-after.png', 6.5, 'Before and after: the same app, rewritten in the new voice.')
+bullets([
+    ('Check-in became "Vibe check." ', 'A name people actually want to tap.'),
+    ('Light swearing is allowed in the AI\'s replies. ', 'It keeps the conversation natural, but never in notifications or errors.'),
+    ('No guilt, ever. ', 'Missing a day resets a streak quietly.'),
+])
+page_break()
+
 # ---------------------------------------------------------------- judgment + reflections
 doc.add_heading('8. Ideas I parked on purpose', 1)
 bullets([

@@ -171,6 +171,29 @@ Started 2026-10-28 in a design session with Karson. Mockups live in `.superpower
 - Wording: friendly, short, no guilt, at most one emoji, rotates. Lock-screen text never includes drinks, weed or people's names unless "Detailed previews" is on.
 - Checked every 15 minutes in the user's time zone. iOS 16.4+ home-screen app required on iPhone. iOS Focus/Sleep modes are respected.
 
+## Voice (Karson picked A + D)
+- Chill-friend voice for the fun parts (reminders, the AI in the debrief, wins); plain words for settings, buttons, errors, privacy and deleting.
+- Tone ladder, most playful to most plain: reminders/invites → AI in debrief → wins/streaks → Insights → settings → errors → privacy.
+- Names:
+  - Check-in → **Vibe check** (button, timeline, how the AI refers to them).
+  - Debrief stays Debrief.
+  - Tabs stay Today · Journal · Insights · You.
+  - "What moves your days" → "Your recipe for a good day".
+- Copy:
+  - Reminder: "Vibe check 🌙 How'd today hit, Karson?"
+  - Score: "How'd today hit? 1 to 10"
+  - Productive / focus: "Get stuff done?" / "Were you locked in?"
+  - Saved: "Locked in ✓". After the debrief: "That's a wrap 🌙".
+  - Follow-up: "Still up? Give me 2 minutes on today."
+  - Empty day: "Nothing here. Quiet day?"
+  - Yesterday open: "Yesterday's still open. 2 minutes?"
+  - Patterns waiting: "Still learning you. 5 more days."
+  - Ready screen: "You're in, Karson. First vibe check is tonight at 9:30."
+- Say: vibe check, how'd it hit, locked in, that's a wrap, straight, let's hear it, solid, rough one.
+- Avoid: journal entry, log your data, user, submit, failed, missed, you forgot, "great job!!".
+- Never: guilt, shame, lecturing about drinking or weed, fake hype, more than one emoji per line, piled-up exclamation marks.
+- **Light swearing is fine in the AI's replies, kept natural** ("damn, that's a rough one"). Occasional, never aimed at the user, never in notifications, settings or errors.
+
 ## Parked for later
 - Body composition (fat vs muscle) estimate, with optional waist, smart-scale and photo inputs.
 
