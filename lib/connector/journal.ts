@@ -180,7 +180,8 @@ export type DayFilter = {
   workedOut?: boolean
   minDrinks?: number
   cannabis?: boolean
-  weekday?: 0 | 1 | 2 | 3 | 4 | 5 | 6
+  /** 0 Sunday through 6 Saturday */
+  weekday?: number
 }
 
 function matches(d: SavedDay, f: DayFilter): boolean {
