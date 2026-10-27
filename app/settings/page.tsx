@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/Card'
+import { ConnectAi } from '@/components/ConnectAi'
 import { TabBar } from '@/components/TabBar'
 import { createBrowserSupabase } from '@/lib/supabase/client'
 
@@ -72,12 +73,7 @@ export default function SettingsPage() {
           </button>
         )}
       </Card>
-      <Card className="mb-3">
-        <p className="font-semibold">Connect your AI</p>
-        <p className="mt-1 text-sm text-muted">
-          Coming in the next update: connect Claude, ChatGPT, or another AI app to your journal and ask it about your life.
-        </p>
-      </Card>
+      <ConnectAi />
       <Card className="mb-3">
         <a href="/api/export" className="block font-semibold text-accent">Download my data</a>
         <p className="mt-1 text-sm text-muted">Everything you have saved, as a JSON file.</p>
