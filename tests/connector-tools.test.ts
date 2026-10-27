@@ -67,6 +67,15 @@ test('get_day returns the full day with its conversation, or a plain message', a
   expect(miss.json.message).toMatch(/No saved debrief on 2026-10-01/)
 })
 
+test('get_days over a long range sends brief lines and says how to get more', async () => {
+  const many = Array.from({ length: 200 }, (_, i) => mk(new Date(Date.UTC(2026, 3, 1 + i)).toISOString().slice(0, 10), 6))
+  const { call } = setup(many)
+  const r = await call('get_days', { start: '2026-04-01', end: '2026-10-27' })
+  expect(r.json.days).toHaveLength(200)
+  expect(r.json.days[0]).not.toHaveProperty('oneLine')
+  expect(r.json.note).toMatch(/shorter range/)
+})
+
 test('a reversed range is swapped and a bad date is a clear tool error', async () => {
   const { call } = setup(saved)
   const r = await call('get_days', { start: '2026-10-27', end: '2026-10-25' })
@@ -76,15 +85,19 @@ test('a reversed range is swapped and a bad date is a clear tool error', async (
   expect(bad.json.error).toMatch(/start/)
 })
 
-test('an empty range is a friendly message', async () => {
+test('an empty range is a friendly message, for search too', async () => {
   const { call } = setup([])
-  const r = await call('get_days')
-  expect(r.json).toMatchObject({ debriefs: 0, message: 'No saved debriefs in this range yet.' })
+  for (const tool of ['get_days', 'search_entries']) {
+    const r = await call(tool, { text: 'hunting' })
+    expect(r.json).toMatchObject({ debriefs: 0, message: 'No saved debriefs in this range yet.' })
+  }
 })
 
 test('search, trends and compare answer with their range', async () => {
   const { call } = setup(saved)
-  expect((await call('search_entries', { text: '10-26' })).json.results[0].date).toBe('2026-10-26')
+  const found = await call('search_entries', { text: '10-26' })
+  expect(found.json.results[0].date).toBe('2026-10-26')
+  expect(found.json).toMatchObject({ totalMatches: 1, truncated: false })
   expect((await call('get_trends', { metric: 'score' })).json.average).toBe(7)
   const c = await call('compare_days', { group_a: { minScore: 8 }, group_b: { maxScore: 5 } })
   expect(c.json.caveat).toMatch(/not proof of cause and effect/)

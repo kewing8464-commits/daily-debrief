@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/server'
 import { z } from 'zod'
 import { debriefDateFor } from '@/lib/dates'
 import {
-  EMPTY_MESSAGE, METRICS, compareDays, daySummaryLine, overview, resolveRange, searchEntries, trend, type Range, type SavedDay,
+  EMPTY_MESSAGE, METRICS, compareDays, dayBriefLine, daySummaryLine, overview, resolveRange, searchEntries, trend, type Range, type SavedDay,
 } from '@/lib/connector/journal'
 import type { JournalSource } from '@/lib/connector/source'
 
@@ -27,6 +27,8 @@ const json = (value: unknown, isError = false) => ({
   content: [{ type: 'text' as const, text: JSON.stringify(value) }],
   ...(isError ? { isError: true } : {}),
 })
+
+const BRIEF_AFTER = 120
 
 const readOnly = { readOnlyHint: true, destructiveHint: false, openWorldHint: false }
 
@@ -55,14 +57,21 @@ export function registerJournalTools(server: McpServer, source: JournalSource, n
 
   server.registerTool('get_days', {
     title: 'List days',
-    description: 'One compact line per saved day in a range: date, score, one-line summary, sleep hours, workout, drinks, weed, tags. Use it to scan a period. Call get_day for the full details of a single day.',
+    description: 'One compact line per saved day in a range: date, score, one-line summary, sleep hours, workout, drinks, weed, tags (numbers only when the range holds more than 120 days). Use it to scan a period. Call get_day for the full details of a single day.',
     inputSchema: z.object(rangeArgs),
     annotations: readOnly,
   }, async (args) => {
     const r = await load(args)
     if (r.error !== undefined) return json({ error: r.error }, true)
     if (!r.days.length) return empty(r.range)
-    return json({ range: r.range, debriefs: r.days.length, days: r.days.map(daySummaryLine) })
+    // Past ~4 months, words would overflow some AI apps' limits, so send numbers only.
+    const brief = r.days.length > BRIEF_AFTER
+    return json({
+      range: r.range,
+      debriefs: r.days.length,
+      ...(brief ? { note: `Over ${BRIEF_AFTER} days, so these lines are numbers only. Ask for a shorter range to get each day's summary and tags.` } : {}),
+      days: r.days.map(brief ? dayBriefLine : daySummaryLine),
+    })
   })
 
   server.registerTool('get_day', {
@@ -80,14 +89,15 @@ export function registerJournalTools(server: McpServer, source: JournalSource, n
 
   server.registerTool('search_entries', {
     title: 'Search the journal',
-    description: 'Find days where the user mentioned something, like a person ("Jake"), a place, a food, or an activity ("hunting"). Searches what the user said and the saved summaries, ignoring case. Returns up to 30 days with short snippets.',
+    description: 'Find days where the user mentioned something, like a person ("Jake"), a place, a food, or an activity ("hunting"). Searches what the user said and the saved summaries, ignoring case. Returns how many days matched and the newest 30 of them with short snippets; narrow the range to see older ones.',
     inputSchema: z.object({ text: z.string().min(1).describe('Word or phrase to look for'), ...rangeArgs }),
     annotations: readOnly,
   }, async ({ text, ...args }) => {
     const r = await load(args)
     if (r.error !== undefined) return json({ error: r.error }, true)
-    const results = searchEntries(r.days, text)
-    return json({ range: r.range, text, matches: results.length, results })
+    if (!r.days.length) return empty(r.range)
+    const { total, truncated, results } = searchEntries(r.days, text)
+    return json({ range: r.range, text, totalMatches: total, truncated, results })
   })
 
   server.registerTool('get_trends', {

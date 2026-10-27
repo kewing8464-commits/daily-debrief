@@ -34,10 +34,18 @@ export function resolveRange(input: { start?: string; end?: string }, today: str
   let end = input.end ?? today
   let start = input.start ?? (input.end ? shift(end, -29) : shift(today, -29))
   if (start > end) [start, end] = [end, start]
+  // There are no entries after today, so a range reaching into the future ends today.
+  const notes: string[] = []
+  if (end > today) {
+    end = today
+    if (start > end) start = end
+    notes.push(`There are no entries after today, so this ends at ${today}.`)
+  }
   if (daysBetween(start, end) + 1 > MAX_RANGE_DAYS) {
     start = shift(end, -(MAX_RANGE_DAYS - 1))
-    return { start, end, note: `Ranges are limited to ${MAX_RANGE_DAYS} days, so this starts at ${start}.` }
+    notes.push(`Ranges are limited to ${MAX_RANGE_DAYS} days, so this starts at ${start}.`)
   }
+  if (notes.length) return { start, end, note: notes.join(' ') }
   return { start, end }
 }
 
@@ -95,17 +103,25 @@ export function overview(days: SavedDay[], range: Range) {
   }
 }
 
-/** One compact line per day for lists. No transcript, so a year of days fits in an AI's context. */
-export function daySummaryLine(d: SavedDay) {
+/** Just the numbers for one day, for long ranges where words would overflow an AI's limits. */
+export function dayBriefLine(d: SavedDay) {
   return {
     date: d.day_date,
     score: d.score,
-    oneLine: d.summary.oneLine,
     sleepHours: d.summary.sleep?.hours ?? null,
-    workout: workedOut(d) ? { type: d.summary.workout.type ?? null, minutes: d.summary.workout.minutes ?? null } : null,
+    workoutMinutes: workedOut(d) ? d.summary.workout.minutes ?? 0 : null,
     drinks: drinks(d),
     cannabis: usedCannabis(d),
-    tags: d.summary.tags ?? [],
+  }
+}
+
+/** One compact line per day for lists. No transcript, so a year of days fits in an AI's context. */
+export function daySummaryLine(d: SavedDay) {
+  return {
+    ...dayBriefLine(d),
+    oneLine: d.summary.oneLine.length > 140 ? `${d.summary.oneLine.slice(0, 139)}…` : d.summary.oneLine,
+    workoutType: workedOut(d) ? d.summary.workout.type ?? null : null,
+    tags: (d.summary.tags ?? []).slice(0, 5),
   }
 }
 
@@ -126,22 +142,24 @@ function snippet(text: string, at: number): string {
   return `${start > 0 ? '…' : ''}${text.slice(start, start + 158)}${start + 158 < text.length ? '…' : ''}`
 }
 
-/** Days whose words mention `text`, newest last, with up to two short snippets each. Max 30 days. */
+/** Days whose words mention `text`, newest first, with up to two short snippets each.
+ *  Counts every matching day but returns only the newest 30. */
 export function searchEntries(days: SavedDay[], text: string) {
   const needle = text.trim().toLowerCase()
-  if (!needle) return []
   const hits: { date: string; score: number; snippets: string[] }[] = []
-  for (const d of days) {
-    const sources = [...d.transcript.filter((t) => t.role === 'user').map((t) => t.text), ...summaryText(d.summary)]
-    const snippets: string[] = []
-    for (const s of sources) {
-      const at = s.toLowerCase().indexOf(needle)
-      if (at >= 0 && snippets.length < 2) snippets.push(snippet(s, at))
+  if (needle) {
+    for (const d of days) {
+      const sources = [...d.transcript.filter((t) => t.role === 'user').map((t) => t.text), ...summaryText(d.summary)]
+      const snippets: string[] = []
+      for (const s of sources) {
+        const at = s.toLowerCase().indexOf(needle)
+        if (at >= 0 && snippets.length < 2) snippets.push(snippet(s, at))
+      }
+      if (snippets.length) hits.push({ date: d.day_date, score: d.score, snippets })
     }
-    if (snippets.length) hits.push({ date: d.day_date, score: d.score, snippets })
-    if (hits.length >= 30) break
   }
-  return hits
+  hits.sort((a, b) => b.date.localeCompare(a.date))
+  return { total: hits.length, truncated: hits.length > 30, results: hits.slice(0, 30) }
 }
 
 export const METRICS = ['score', 'sleep_hours', 'drinks', 'workout_minutes', 'worked_out', 'cannabis'] as const

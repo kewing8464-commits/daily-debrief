@@ -1,6 +1,6 @@
 import { emptySummary, type DaySummary } from '@/lib/summary'
 import {
-  compareDays, daySummaryLine, overview, resolveRange, searchEntries, trend, type SavedDay,
+  compareDays, dayBriefLine, daySummaryLine, overview, resolveRange, searchEntries, trend, type SavedDay,
 } from '@/lib/connector/journal'
 
 const mk = (day_date: string, score: number, extra: Partial<DaySummary> = {}, said = ''): SavedDay => ({
@@ -29,7 +29,15 @@ describe('resolveRange', () => {
     expect(resolveRange({}, '2026-10-27')).toEqual({ start: '2026-09-28', end: '2026-10-27' })
   })
   test('swaps a reversed range', () => {
-    expect(resolveRange({ start: '2026-12-01', end: '2026-11-01' }, '2026-10-27')).toMatchObject({ start: '2026-11-01', end: '2026-12-01' })
+    expect(resolveRange({ start: '2026-10-20', end: '2026-10-01' }, '2026-10-27')).toMatchObject({ start: '2026-10-01', end: '2026-10-20' })
+  })
+  test('"everything" (2000 to 2099) means the last 366 days ending today, not the future', () => {
+    const r = resolveRange({ start: '2000-01-01', end: '2099-12-31' }, '2026-10-27')
+    expect(r).toMatchObject({ start: '2025-10-27', end: '2026-10-27' })
+    expect('note' in r && r.note).toBeTruthy()
+  })
+  test('a future-only range collapses to today', () => {
+    expect(resolveRange({ start: '2099-01-01', end: '2099-12-31' }, '2026-10-27')).toMatchObject({ start: '2026-10-27', end: '2026-10-27' })
   })
   test('clamps to 366 days ending at end, with a note', () => {
     const r = resolveRange({ start: '2020-01-01', end: '2026-10-27' }, '2026-10-27')
@@ -73,19 +81,40 @@ test('daySummaryLine is compact and never carries the transcript', () => {
   expect(line).toMatchObject({ date: '2026-10-23', score: 7, sleepHours: 7, drinks: 0, tags: ['hunting'] })
 })
 
-test('a full year of day lines stays small', () => {
-  const year = Array.from({ length: 366 }, (_, i) => ({ ...days[5], day_date: `d${i}` }))
-  expect(JSON.stringify(year.map(daySummaryLine)).length).toBeLessThan(120_000)
+test('a full year of wordy day lines stays under about 20k tokens', () => {
+  const wordy = mk('2026-10-23', 7, {
+    oneLine: 'A long rambling day summary. '.repeat(70),
+    tags: Array.from({ length: 12 }, (_, i) => `tag-number-${i}`),
+    sleep: { hours: 7.5 }, workout: { did: true, type: 'lift', minutes: 60 }, alcohol: { drinks: 2 },
+  })
+  const year = Array.from({ length: 366 }, () => wordy)
+  // ~4 characters per token; long ranges use the brief, numbers-only line
+  expect(JSON.stringify(year.map(dayBriefLine)).length).toBeLessThan(80_000)
+  expect(dayBriefLine(wordy)).not.toHaveProperty('oneLine')
+  expect(daySummaryLine(wordy).oneLine.length).toBeLessThanOrEqual(140)
+  expect(daySummaryLine(wordy).tags).toHaveLength(5)
 })
 
-test('searchEntries finds words in transcripts, ignoring case, with short snippets', () => {
-  const hits = searchEntries(days, 'JAKE')
-  expect(hits.map((h) => h.date)).toEqual(['2026-10-18', '2026-10-23', '2026-10-26'])
+test('searchEntries finds words in transcripts, ignoring case, newest first, with short snippets', () => {
+  const { total, truncated, results: hits } = searchEntries(days, 'JAKE')
+  expect(total).toBe(3)
+  expect(truncated).toBe(false)
+  expect(hits.map((h) => h.date)).toEqual(['2026-10-26', '2026-10-23', '2026-10-18'])
   const hunting = hits.find((h) => h.date === '2026-10-23')!
   expect(hunting.snippets.length).toBeGreaterThan(0)
   expect(hunting.snippets.length).toBeLessThanOrEqual(2)
   for (const s of hunting.snippets) expect(s.length).toBeLessThanOrEqual(160)
-  expect(searchEntries(days, 'zebra')).toEqual([])
+  expect(searchEntries(days, 'zebra')).toEqual({ total: 0, truncated: false, results: [] })
+})
+
+test('searchEntries counts every match but returns only the newest 30', () => {
+  const many = Array.from({ length: 40 }, (_, i) => mk(`2026-09-${String((i % 30) + 1).padStart(2, '0')}`, 5, {}, 'saw Jake'))
+    .map((d, i) => ({ ...d, day_date: i < 30 ? d.day_date : `2026-10-${String(i - 29).padStart(2, '0')}` }))
+  const r = searchEntries(many, 'jake')
+  expect(r.total).toBe(40)
+  expect(r.truncated).toBe(true)
+  expect(r.results).toHaveLength(30)
+  expect(r.results[0].date).toBe('2026-10-10')
 })
 
 describe('trend', () => {
