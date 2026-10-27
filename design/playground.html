@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Debrief design playground</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system, system-ui, sans-serif; background:#e9e9ee; color:#1d1d1f; display:flex; min-height:100vh; }
+  /* ---------- control panel ---------- */
+  #panel { width:310px; flex-shrink:0; background:#fff; border-right:1px solid #d9d9e0; padding:16px 16px 40px; height:100vh; overflow-y:auto; position:sticky; top:0; }
+  #panel h1 { font-size:17px; margin:0 0 2px; }
+  #panel .hint { font-size:12px; color:#6e6e73; margin:0 0 12px; line-height:1.4; }
+  .grp { border-top:1px solid #eee; padding:11px 0 4px; }
+  .grp > label, .grp > .gl { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#6e6e73; margin-bottom:6px; }
+  .seg { display:flex; flex-wrap:wrap; gap:5px; }
+  .seg button { border:1px solid #d2d2d7; background:#fafafa; border-radius:8px; padding:6px 9px; font-size:12px; cursor:pointer; }
+  .seg button.on { background:#1d1d1f; color:#fff; border-color:#1d1d1f; }
+  .sw { display:flex; flex-wrap:wrap; gap:6px; }
+  .sw button { width:62px; border:2px solid transparent; border-radius:10px; padding:3px; cursor:pointer; background:#f5f5f7; font-size:10px; }
+  .sw button.on { border-color:#1d1d1f; }
+  .sw .chips { display:flex; height:20px; border-radius:6px; overflow:hidden; margin-bottom:2px; }
+  .sw .chips span { flex:1; }
+  .colors { display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; font-size:12px; }
+  .colors label { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .colors input { width:38px; height:24px; border:none; padding:0; background:none; cursor:pointer; }
+  input[type=range] { width:100%; }
+  .rv { float:right; font-weight:600; color:#1d1d1f; text-transform:none; letter-spacing:0; }
+  #out { width:100%; height:110px; font:11px ui-monospace, Menlo, monospace; border:1px solid #d2d2d7; border-radius:8px; padding:6px; margin-top:6px; }
+  .act { display:flex; gap:6px; margin-top:8px; }
+  .act button { flex:1; padding:9px; border-radius:9px; border:none; cursor:pointer; font-weight:600; font-size:12.5px; }
+  #send { background:#0a84ff; color:#fff; } #reset { background:#eee; }
+  #sent { font-size:12px; color:#1f9d55; margin-top:6px; min-height:16px; }
+
+  /* ---------- stage ---------- */
+  #stage { flex:1; padding:22px 18px 40px; overflow-x:auto; }
+  #stage .title { font-size:13px; color:#6e6e73; margin-bottom:12px; }
+  .phones { display:flex; gap:22px; flex-wrap:wrap; }
+  .pwrap { width:272px; }
+  .pcap { text-align:center; font-size:12px; color:#6e6e73; margin-top:6px; }
+
+  /* ---------- the app (all driven by CSS variables) ---------- */
+  .ph { width:272px; height:570px; border-radius:40px; border:9px solid #111; overflow:hidden; display:flex; flex-direction:column;
+        background:var(--bg); color:var(--text); font-family:var(--body); font-size:calc(12px * var(--scale)); box-shadow:0 10px 30px rgba(0,0,0,.2); }
+  .scr { flex:1; padding:14px 14px 0; overflow:hidden; }
+  .status { display:flex; justify-content:space-between; font-size:10px; font-weight:600; opacity:.7; margin-bottom:10px; font-family:-apple-system, system-ui, sans-serif; }
+  .h { font-family:var(--head); }
+  .muted { color:var(--muted); }
+  .small { font-size:calc(10.5px * var(--scale)); }
+  .lab { font-size:calc(9.5px * var(--scale)); color:var(--muted); letter-spacing:var(--labsp); text-transform:var(--labcase); }
+  .card { background:var(--surface); border-radius:var(--r); padding:11px 12px; margin-bottom:9px; }
+  .cs-outline .card { border:1px solid var(--border); }
+  .cs-shadow .card { box-shadow:0 3px 12px rgba(0,0,0,.09); }
+  .cs-glass .card { background:color-mix(in srgb, var(--surface) 70%, transparent); border:1px solid color-mix(in srgb, var(--text) 10%, transparent); backdrop-filter:blur(8px); }
+  .cs-flat .card { }
+  .btn { background:var(--btnbg); color:var(--btntext); text-align:center; padding:13px; border-radius:var(--btnr); font-weight:700; font-size:calc(13px * var(--scale)); letter-spacing:var(--btnsp); }
+  .tabs { display:flex; justify-content:space-around; padding:9px 4px 14px; font-size:9.5px; background:var(--surface); border-top:1px solid var(--border); font-family:-apple-system, system-ui, sans-serif; }
+  .tabs div { display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--muted); }
+  .tabs div.on { color:var(--accent); }
+  .tabs i { font-style:normal; font-size:16px; line-height:1; }
+  .big { font-size:calc(28px * var(--scale)); font-weight:800; line-height:1.05; font-family:var(--num); }
+  .acc { color:var(--accent); } .acc2 { color:var(--accent2); } .neg { color:var(--neg); }
+  .week { display:flex; gap:5px; align-items:flex-end; height:48px; justify-content:space-between; }
+  .week .bar { flex:1; border-radius:calc(var(--r) / 4); }
+  .week .dot { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9px; color:var(--muted); }
+  .week .dot span { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .cal .dw { font-size:9px; text-align:center; color:var(--muted); }
+  .cal .d { aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:9.5px; font-weight:600; }
+  .cal .d.none { border:1px dashed var(--border); color:var(--muted); }
+  .cal .d.sel { outline:2px solid var(--text); outline-offset:1px; }
+  .kv { display:flex; justify-content:space-between; gap:8px; padding:4px 0; border-bottom:1px dashed var(--border); font-size:calc(10.5px * var(--scale)); }
+  .kv b { font-weight:600; text-align:right; }
+  .pill { display:inline-block; font-size:calc(10px * var(--scale)); padding:3px 8px; border-radius:12px; background:color-mix(in srgb, var(--accent) 14%, var(--surface)); margin:3px 3px 0 0; }
+  .meter { height:6px; border-radius:3px; background:var(--border); overflow:hidden; margin:2px 0 6px; }
+  .meter span { display:block; height:100%; border-radius:3px; }
+  .bub { background:var(--surface); padding:9px 11px; border-radius:var(--r); margin-bottom:7px; font-size:calc(11.5px * var(--scale)); line-height:1.4; }
+  .bub.me { margin-left:24px; background:color-mix(in srgb, var(--accent) 12%, var(--surface)); color:var(--muted); }
+  .chatline .bub { border-radius:4px; border-left:3px solid var(--accent); background:var(--surface); }
+  .chatline .bub.me { border-left-color:var(--accent2); margin-left:0; }
+  .orb { width:92px; height:92px; border-radius:50%; margin:6px auto 4px; background:radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--accent) 35%, #fff), var(--accent) 70%);
+         box-shadow:0 0 0 12px color-mix(in srgb, var(--accent) 16%, transparent), 0 0 0 26px color-mix(in srgb, var(--accent) 8%, transparent); }
+  .wave { display:flex; gap:3px; align-items:center; justify-content:center; height:42px; margin:8px 0 2px; }
+  .wave span { width:4px; border-radius:2px; background:var(--accent); }
+  .mic { width:62px; height:62px; border-radius:50%; margin:8px auto 0; display:flex; align-items:center; justify-content:center; font-size:24px;
+         border:2px solid var(--accent); box-shadow:0 0 22px color-mix(in srgb, var(--accent) 45%, transparent); background:var(--surface); }
+  .ring text { font-family:var(--num); }
+  .li { display:flex; align-items:center; gap:8px; padding:5px 0; font-size:calc(11.5px * var(--scale)); }
+  .li .ic { width:24px; height:24px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+  .li .v { margin-left:auto; font-weight:700; font-family:var(--num); }
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <h1>Daily Debrief playground</h1>
+  <p class="hint">Change anything on the left and the four screens update live. When you like it, press <b>Send to Claude</b>.</p>
+
+  <div class="grp"><div class="gl">Start from</div><div class="seg" data-key="base"></div></div>
+  <div class="grp"><div class="gl">Light or dark</div><div class="seg" data-key="mode"></div></div>
+  <div class="grp"><div class="gl">Color palette</div><div class="sw" id="palettes"></div></div>
+  <div class="grp"><div class="gl">Fine-tune colors</div>
+    <div class="colors">
+      <label>Background <input type="color" data-color="bg"></label>
+      <label>Cards <input type="color" data-color="surface"></label>
+      <label>Text <input type="color" data-color="text"></label>
+      <label>Soft text <input type="color" data-color="muted"></label>
+      <label>Accent <input type="color" data-color="accent"></label>
+      <label>Accent 2 <input type="color" data-color="accent2"></label>
+    </div>
+  </div>
+  <div class="grp"><div class="gl">Headline font</div><div class="seg" data-key="head"></div></div>
+  <div class="grp"><div class="gl">Body font</div><div class="seg" data-key="body"></div></div>
+  <div class="grp"><label>Corner roundness <span class="rv" id="rv"></span></label><input type="range" min="0" max="28" data-range="radius"></div>
+  <div class="grp"><label>Text size <span class="rv" id="sv"></span></label><input type="range" min="90" max="115" data-range="scale"></div>
+  <div class="grp"><div class="gl">Card style</div><div class="seg" data-key="cards"></div></div>
+  <div class="grp"><div class="gl">Button style</div><div class="seg" data-key="button"></div></div>
+  <div class="grp"><div class="gl">Good-day / bad-day colors</div><div class="seg" data-key="mood"></div></div>
+  <div class="grp"><div class="gl">Calendar days look like</div><div class="seg" data-key="dayshape"></div></div>
+  <div class="grp"><div class="gl">This-week chart</div><div class="seg" data-key="week"></div></div>
+  <div class="grp"><div class="gl">Talk or type on Home</div><div class="seg" data-key="start"></div></div>
+  <div class="grp"><div class="gl">Debrief screen</div><div class="seg" data-key="debrief"></div></div>
+  <div class="grp"><div class="gl">Report headline</div><div class="seg" data-key="report"></div></div>
+  <div class="grp"><div class="gl">Wording</div><div class="seg" data-key="tone"></div></div>
+  <div class="grp"><div class="gl">Emoji icons</div><div class="seg" data-key="emoji"></div></div>
+
+  <div class="grp"><div class="gl">Your settings</div>
+    <textarea id="out" readonly></textarea>
+    <div class="act"><button id="reset">Reset</button><button id="send">Send to Claude</button></div>
+    <div id="sent"></div>
+  </div>
+</div>
+
+<div id="stage">
+  <div class="title">Home · Debrief by talking · Debrief by typing · Calendar with a day open · Monthly report. Sample data, not real. Your saved pick is "★ Your pick".</div>
+  <div class="phones" id="phones"></div>
+</div>
+
+<script>
+const PALETTES = {
+  neon:      { name:'Neon',       dark:{bg:'#0a0e13',surface:'#111923',text:'#e3ebf3',muted:'#6b7f93',accent:'#2ee6d6',accent2:'#b6f35c'}, light:{bg:'#f3f7fa',surface:'#ffffff',text:'#0d1b26',muted:'#5b6f80',accent:'#0fb5a7',accent2:'#5f9e12'} },
+  terracotta:{ name:'Terracotta', dark:{bg:'#1e1714',surface:'#2a201b',text:'#f3e8de',muted:'#a8968a',accent:'#e0895f',accent2:'#9fc29a'}, light:{bg:'#fbf6ef',surface:'#ffffff',text:'#3b302a',muted:'#9a8b7f',accent:'#c9714b',accent2:'#7fa37a'} },
+  sage:      { name:'Sage',       dark:{bg:'#121815',surface:'#1b231f',text:'#e6eee8',muted:'#8a9c90',accent:'#8cc3a0',accent2:'#e7c27d'}, light:{bg:'#f4f6f1',surface:'#ffffff',text:'#26332b',muted:'#7c8a80',accent:'#4f8a64',accent2:'#c99a3e'} },
+  midnight:  { name:'Midnight',   dark:{bg:'#0e0b1a',surface:'#181329',text:'#ece8fb',muted:'#8b84a8',accent:'#9b7bff',accent2:'#ff8fb1'}, light:{bg:'#f5f3fc',surface:'#ffffff',text:'#1d1838',muted:'#77719a',accent:'#6c3cf0',accent2:'#e0508a'} },
+  ocean:     { name:'Ocean',      dark:{bg:'#08131c',surface:'#0f1f2c',text:'#e2eef7',muted:'#7a93a8',accent:'#4fb3ff',accent2:'#ffd166'}, light:{bg:'#f2f7fb',surface:'#ffffff',text:'#0f2433',muted:'#68829a',accent:'#1f7ae0',accent2:'#e6a700'} },
+  sunset:    { name:'Sunset',     dark:{bg:'#1a1011',surface:'#26181a',text:'#fbe9e4',muted:'#b0918c',accent:'#ff7a59',accent2:'#ffc15e'}, light:{bg:'#fff6f1',surface:'#ffffff',text:'#3a1f1a',muted:'#a07e76',accent:'#f05d3e',accent2:'#e3a10e'} },
+  mono:      { name:'Mono',       dark:{bg:'#0c0c0d',surface:'#18181a',text:'#f2f2f3',muted:'#8a8a90',accent:'#ffffff',accent2:'#ffcc00'}, light:{bg:'#f6f6f7',surface:'#ffffff',text:'#141416',muted:'#7a7a80',accent:'#141416',accent2:'#e0a800'} },
+};
+const FONTS = {
+  sans:'-apple-system, system-ui, "Segoe UI", sans-serif',
+  rounded:'ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, system-ui, sans-serif',
+  serif:'Georgia, "Iowan Old Style", "Times New Roman", serif',
+  mono:'ui-monospace, "SF Mono", Menlo, monospace',
+};
+const OPTIONS = {
+  base:    [['mine','★ Your pick'],['signal','A · Signal'],['journal','B · Journal'],['blend','A + B blend']],
+  mode:    [['dark','Dark'],['light','Light']],
+  head:    [['sans','Sans'],['rounded','Rounded'],['serif','Serif'],['mono','Mono']],
+  body:    [['sans','Sans'],['rounded','Rounded'],['serif','Serif'],['mono','Mono']],
+  cards:   [['flat','Flat'],['outline','Outlined'],['shadow','Shadow'],['glass','Glass']],
+  button:  [['gradient','Gradient'],['solid','Solid'],['outline','Outline'],['pill','Pill']],
+  mood:    [['traffic','Green → red'],['pastel','Warm pastel'],['accent','Accent shades'],['blue','Blue scale']],
+  dayshape:[['square','Squares'],['rounded','Rounded'],['circle','Circles'],['emoji','Faces']],
+  week:    [['bars','Bars'],['dots','Mood dots'],['line','Line']],
+  start:   [['two','Two buttons'],['switch','Talk/Type switch'],['link','Talk + small link']],
+  debrief: [['wave','Waveform + chat'],['orb','Orb + bubbles'],['big','One big question']],
+  report:  [['score','Big score'],['ring','Ring'],['sentence','Sentence']],
+  tone:    [['techie','Techie'],['friendly','Friendly']],
+  emoji:   [['on','On'],['off','Off']],
+};
+const BASES = {
+  signal:  { mode:'dark',  palette:'neon',       head:'mono',  body:'mono',  radius:10, scale:100, cards:'outline', button:'gradient', mood:'accent',  dayshape:'square',  week:'bars', debrief:'wave', report:'score',    tone:'techie',   emoji:'off', start:'two' },
+  journal: { mode:'light', palette:'terracotta', head:'serif', body:'sans',  radius:20, scale:100, cards:'shadow',  button:'pill',     mood:'pastel',  dayshape:'circle',  week:'dots', debrief:'orb',  report:'sentence', tone:'friendly', emoji:'on', start:'two' },
+  mine:    { mode:'dark',  palette:'custom', head:'sans', body:'sans', radius:7, scale:99, cards:'shadow', button:'solid', mood:'traffic', dayshape:'rounded', week:'dots', debrief:'wave', report:'ring', tone:'friendly', emoji:'on', start:'two',
+             colors:{bg:'#4c372f',surface:'#6d5d55',text:'#f3e8de',muted:'#d0bfb3',accent:'#bf714a',accent2:'#bbccb8'} },
+  blend:   { mode:'dark',  palette:'terracotta', head:'serif', body:'sans',  radius:16, scale:100, cards:'outline', button:'solid',    mood:'pastel',  dayshape:'rounded', week:'bars', debrief:'orb',  report:'ring',     tone:'friendly', emoji:'on'  },
+};
+let S = {};
+function setBase(b) { S = Object.assign({ base:b }, JSON.parse(JSON.stringify(BASES[b]))); if (!S.colors) S.colors = Object.assign({}, PALETTES[S.palette][S.mode]); }
+setBase('mine');
+
+// ---------- mood colors (score 1..5) ----------
+function mix(a, b, t) { const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)); const x=p(a), y=p(b); return '#'+x.map((v,i)=>Math.round(v+(y[i]-v)*t).toString(16).padStart(2,'0')).join(''); }
+function moodColor(s) {
+  const C = S.colors;
+  if (S.mood === 'traffic') return ['#d64545','#ee9a6a','#e9d27a','#8fd19e','#2e9d5b'][s-1];
+  if (S.mood === 'pastel')  return ['#e89f88','#f2c9b4','#f0e2c4','#c7dcb9','#9fc29a'][s-1];
+  if (S.mood === 'blue')    return ['#cfe0f7','#9fc3ef','#6da7ec','#3987e5','#1c5cab'][s-1];
+  return [mix(C.surface,C.accent,.12), mix(C.surface,C.accent,.3), mix(C.surface,C.accent,.5), mix(C.surface,C.accent,.75), C.accent][s-1];
+}
+function moodText(s) { const c = moodColor(s); const n=parseInt(c.slice(1),16); const l=(0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255)); return l>150 ? '#1d1d1f' : '#ffffff'; }
+const FACES = ['😣','😕','😐','🙂','😄'];
+const E = (on, off='') => S.emoji === 'on' ? on : off;
+const T = (techie, friendly) => S.tone === 'techie' ? techie : friendly;
+
+// ---------- screens ----------
+const WEEK = [4,3,2,4,5,5,5], WD = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+const MONTH = [null,null,null,4,3,5,5, 4,2,3,4,1,4,5, 4,3,0,4,5,5,4, 2,3,4,2,4,5,4];
+
+function weekChart() {
+  if (S.week === 'bars') return `<div class="week">${WEEK.map(s=>`<div class="bar" style="height:${s*18}%;background:${moodColor(s)}"></div>`).join('')}</div>`;
+  if (S.week === 'dots') return `<div class="week" style="align-items:center">${WEEK.map((s,i)=>`<div class="dot"><span style="background:${moodColor(s)};color:${moodText(s)}">${S.emoji==='on'?FACES[s-1]:''}</span>${WD[i]}</div>`).join('')}</div>`;
+  const pts = WEEK.map((s,i)=>`${8+i*34},${48-s*8}`).join(' ');
+  return `<svg viewBox="0 0 220 50" width="100%" height="50"><polyline fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points="${pts}"/>${WEEK.map((s,i)=>`<circle cx="${8+i*34}" cy="${48-s*8}" r="3.5" fill="${moodColor(s)}"/>`).join('')}</svg>`;
+}
+function dayCell(s, n, sel) {
+  if (s === null) return '<div></div>';
+  const r = {square:'3px', rounded:'8px', circle:'50%', emoji:'50%'}[S.dayshape];
+  if (s === 0) return `<div class="d none" style="border-radius:${r}">${n}</div>`;
+  const inner = S.dayshape === 'emoji' ? FACES[s-1] : n;
+  return `<div class="d${sel?' sel':''}" style="border-radius:${r};background:${moodColor(s)};color:${moodText(s)};font-size:${S.dayshape==='emoji'?'12px':''}">${inner}</div>`;
+}
+
+function startArea() {
+  const talk = T('▶ TALK IT OUT', E('🎙 ')+'Talk it out'), type = T('⌨ TYPE IT', E('⌨️ ')+'Type it');
+  if (S.start === 'two') return `<div style="display:flex;gap:7px"><div class="btn" style="flex:1.4">${talk}</div>
+      <div class="btn" style="flex:1;background:transparent;color:var(--accent);border:2px solid var(--accent)">${type}</div></div>`;
+  if (S.start === 'switch') return `<div style="display:flex;background:var(--bg);border-radius:var(--btnr);padding:3px;margin-bottom:8px;font-size:calc(11px * var(--scale));font-weight:700">
+      <div style="flex:1;text-align:center;padding:6px;border-radius:var(--btnr);background:var(--surface);color:var(--text)">${E('🎙 ')}Talk</div>
+      <div style="flex:1;text-align:center;padding:6px;color:var(--muted)">${E('⌨️ ')}Type</div></div>
+      <div class="btn">${T('▶ START DEBRIEF','Start tonight\'s debrief')}</div>`;
+  return `<div class="btn">${T('▶ START DEBRIEF', E('🎙 ')+'Start tonight\'s debrief')}</div>
+      <div class="small acc" style="text-align:center;margin-top:7px">${T('or type instead ›','Can\'t talk right now? Type instead ›')}</div>`;
+}
+
+function home() {
+  return `
+  <div class="lab">${T('SAT · OCT 17','Saturday, October 17')}</div>
+  <div class="h" style="font-size:calc(${S.head==='serif'?22:18}px * var(--scale));font-weight:${S.head==='serif'?400:700};margin:3px 0 12px;line-height:1.15">${T('Evening, Karson_','Good evening, Karson '+E('🌙'))}</div>
+  <div class="card">
+    <div class="lab">${T('Debrief status','Tonight')}</div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin:2px 0 9px">
+      <span class="big acc" style="font-size:calc(${S.tone==='techie'?26:19}px * var(--scale))">${T('PENDING','Ready when you are')}</span><span class="small muted">~5 min</span></div>
+    ${startArea()}
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between"><span class="lab">${T('7-day score','Your week')}</span><span class="small acc2">${T('▲ +1.2','Trending up')}</span></div>
+    ${S.week==='dots' ? '' : `<div class="big" style="margin:2px 0 6px">7.8<span class="small muted">/10</span></div>`}
+    <div style="margin-top:${S.week==='dots'?8:0}px">${weekChart()}</div>
+  </div>
+  <div class="card" style="display:flex;gap:10px">
+    <div style="flex:1"><div class="lab">${E('🔥 ')}Streak</div><div class="big" style="font-size:calc(19px * var(--scale))">12 days</div></div>
+    <div style="flex:1"><div class="lab">${E('😴 ')}Sleep avg</div><div class="big" style="font-size:calc(19px * var(--scale))">7.3h</div></div>
+  </div>
+  <div class="card small" style="line-height:1.45">${T('<span class="acc2">// signal</span> Workout days score <b>+1.9</b> higher than rest days.', E('🌱 ')+'You\'ve had <b>3 great days in a row</b>. All three started with the gym.')}</div>`;
+}
+
+function debrief() {
+  const q = 'Got it. Any beers or weed today?';
+  const top = modeSwitch(0) + `<div style="display:flex;justify-content:space-between" class="lab"><span>${T('Debrief · Q4 / ~8','Question 4 of about 8')}</span><span>✕</span></div>
+    <div class="meter" style="margin:8px 0 12px"><span style="width:50%;background:var(--accent)"></span></div>`;
+  const chat = `<div class="bub">${T('Nice, a 45 minute lift. What did you eat after?','That lift sounds like a good start. What did you eat after?')}</div>
+    <div class="bub me">Chicken bowl from downtown and a protein shake</div><div class="bub">${q}</div>`;
+  const wave = `<div class="wave">${[12,26,38,20,32,14,28,36,18,24,10].map(h=>`<span style="height:${h}px"></span>`).join('')}</div>`;
+  const foot = `<div style="display:flex;justify-content:space-between;margin-top:14px" class="lab"><span>⌨ ${T('type instead','Type instead')}</span><span>${T('skip ›','Skip this one')}</span></div>`;
+  if (S.debrief === 'wave') return top + `<div class="chatline">${chat}</div>` + wave + `<div class="lab" style="text-align:center">listening…</div><div class="mic">🎙</div>` + foot;
+  if (S.debrief === 'orb')  return top + `<div class="orb"></div><div class="lab" style="text-align:center;margin-bottom:10px">listening…</div>` + chat + foot;
+  return top + `<div style="text-align:center;font-size:30px;margin-top:22px">${E('🍺')}</div>
+    <div class="h" style="font-size:calc(21px * var(--scale));font-weight:700;text-align:center;line-height:1.2;margin-top:6px">Any beers or weed today?</div>
+    <div class="small muted" style="text-align:center;margin-top:8px">You said: "chicken bowl and a protein shake" ✓</div>
+    <div class="mic" style="width:72px;height:72px;margin-top:60px">🎙</div>` + foot;
+}
+
+function modeSwitch(on) {
+  const b = (i, l) => `<div style="flex:1;text-align:center;padding:5px;border-radius:calc(var(--r) * .8);${i===on?'background:var(--surface);color:var(--text)':'color:var(--muted)'}">${l}</div>`;
+  return `<div style="display:flex;background:color-mix(in srgb, var(--text) 8%, transparent);border-radius:var(--r);padding:3px;margin-bottom:10px;font-size:calc(10.5px * var(--scale));font-weight:700">
+    ${b(0, E('🎙 ')+'Talk')}${b(1, E('⌨️ ')+'Type')}</div>`;
+}
+function typing() {
+  const keys = ['qwertyuiop','asdfghjkl','zxcvbnm'];
+  return modeSwitch(1) + `<div style="display:flex;justify-content:space-between" class="lab"><span>${T('Debrief · Q4 / ~8','Question 4 of about 8')}</span><span>✕</span></div>
+    <div class="meter" style="margin:8px 0 12px"><span style="width:50%;background:var(--accent)"></span></div>
+    <div class="bub">${T('Nice, a 45 minute lift. What did you eat after?','That lift sounds like a good start. What did you eat after?')}</div>
+    <div class="bub me">Chicken bowl from downtown and a protein shake</div>
+    <div class="bub">Got it. Any beers or weed today?</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 8px">
+      <span class="pill">None</span><span class="pill">${E('🍺 ')}1–2 beers</span><span class="pill">${E('🍺 ')}3+ beers</span><span class="pill">${E('🌿 ')}Some weed</span></div>
+    <div style="display:flex;gap:6px;align-items:center;background:var(--surface);border-radius:20px;padding:7px 8px 7px 12px;border:1px solid var(--border)">
+      <span class="small" style="flex:1">Two beers with dinner, no weed|</span>
+      <span style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--btntext);display:flex;align-items:center;justify-content:center;font-weight:800">↑</span></div>
+    <div style="margin:9px -14px 0;background:color-mix(in srgb, var(--text) 10%, var(--bg));padding:6px 3px 10px">
+      ${keys.map(r=>`<div style="display:flex;justify-content:center;gap:3px;margin:4px 0">${r.split('').map(k=>`<span style="width:21px;height:28px;border-radius:5px;background:color-mix(in srgb, var(--text) 18%, var(--bg));display:flex;align-items:center;justify-content:center;font-size:11px">${k}</span>`).join('')}</div>`).join('')}
+    </div>`;
+}
+
+function calendar() {
+  let cells = WD.map(d=>`<div class="dw">${d[0]}</div>`).join('');
+  MONTH.forEach((s,i)=>{ const n = i-2; cells += dayCell(s, n, n===17); });
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:baseline">
+    <span class="h" style="font-size:calc(${S.head==='serif'?20:16}px * var(--scale));font-weight:${S.head==='serif'?400:700}">${T('‹ OCT 2026 ›','October')}</span><span class="lab">${T('avg 7.4','')}</span></div>
+  <div class="cal" style="margin:10px 0 12px">${cells}</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="h" style="font-weight:${S.head==='serif'?400:700};font-size:calc(14px * var(--scale))">${T('SAT 10.17','Saturday the 17th')}</span>
+      <span class="big acc" style="font-size:calc(18px * var(--scale))">${S.emoji==='on' && S.tone==='friendly' ? '😄' : '9.0'}</span></div>
+    ${S.tone==='techie' ? `
+      <div class="kv"><span class="muted">sleep</span><b>23:30 → 07:15 · 7h45</b></div>
+      <div class="kv"><span class="muted">workout</span><b>lift · 45m</b></div>
+      <div class="kv"><span class="muted">food</span><b>eggs, chicken bowl, steak</b></div>
+      <div class="kv"><span class="muted">alcohol / thc</span><b>2 / 0</b></div>
+      <div class="kv"><span class="muted">+ high</span><b class="acc2">listing signed</b></div>
+      <div class="kv" style="border:none"><span class="muted">− low</span><b class="neg">flat tire</b></div>`
+    : `<div class="h small" style="line-height:1.5;margin:6px 0;font-style:${S.head==='serif'?'italic':'normal'}">"Gym in the morning, coffee with Jake, then the client said yes to the listing. Truck tire went flat, but honestly a great day."</div>
+      <span class="pill">${E('💪 ')}lift 45m</span><span class="pill">${E('😴 ')}7h 45m</span><span class="pill">${E('🍺 ')}2 beers</span><span class="pill">${E('☕ ')}Jake</span>`}
+    <div class="lab" style="text-align:right;margin-top:6px">${T('open transcript ›','Read the full conversation ›')}</div>
+  </div>`;
+}
+
+function report() {
+  const boosters = [['💪','Morning workout',1.9,90],['😴','7+ hours sleep',1.4,68],['🌾','Time outdoors',1.1,52]];
+  const drains = [['🍺','4+ beers the night before',-2.2,95],['📅','3+ meetings',-0.9,40]];
+  let head;
+  if (S.report === 'score') head = `<div class="lab">${T('Report · October · 26 debriefs','Your October · 26 debriefs')}</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:4px 0 10px"><span class="big" style="font-size:calc(34px * var(--scale))">7.4</span><span class="small acc2">${T('▲ 0.6 vs Sep','up from 6.8 in September')}</span></div>`;
+  else if (S.report === 'ring') head = `<div class="lab">${T('Report · October','Your October')}</div><div class="card ring" style="text-align:center;padding:8px">
+      <svg viewBox="0 0 120 120" width="112" height="112"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="11"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="11" stroke-linecap="round" stroke-dasharray="232 314" transform="rotate(-90 60 60)"/>
+      <circle cx="60" cy="60" r="35" fill="none" stroke="var(--border)" stroke-width="9"/>
+      <circle cx="60" cy="60" r="35" fill="none" stroke="var(--accent2)" stroke-width="9" stroke-linecap="round" stroke-dasharray="190 220" transform="rotate(-90 60 60)"/>
+      <text x="60" y="60" text-anchor="middle" font-size="22" font-weight="800" fill="var(--text)">7.4</text><text x="60" y="75" text-anchor="middle" font-size="9" fill="var(--muted)">avg day</text></svg>
+      <div class="small muted"><span class="acc">●</span> 14 great days &nbsp; <span class="acc2">●</span> 26 debriefs</div></div>`;
+  else head = `<div class="lab">Your October</div><div class="h" style="font-size:calc(19px * var(--scale));line-height:1.25;margin:3px 0 12px;font-weight:${S.head==='serif'?400:700}">A good month. You felt great on <b class="acc">14 of 26</b> days.</div>`;
+  const row = (b, pos) => S.tone === 'techie'
+    ? `<div class="kv" style="border:none;padding-bottom:0"><span>${b[1].toLowerCase()}</span><b class="${pos?'acc2':'neg'}">${b[2]>0?'+':'−'}${Math.abs(b[2])}</b></div><div class="meter"><span style="width:${b[3]}%;background:${pos?'var(--accent2)':'var(--neg)'}"></span></div>`
+    : `<div class="li"><span class="ic" style="background:${moodColor(pos?5:1)}">${E(b[0],pos?'+':'−')}</span>${b[1]}</div>`;
+  return head + `
+  <div class="card"><div class="lab" style="margin-bottom:4px">${T('Top positive signals', E('🚀 ')+'What lifts you up')}</div>${boosters.map(b=>row(b,true)).join('')}</div>
+  <div class="card"><div class="lab" style="margin-bottom:4px">${T('Top negative signals', E('🪫 ')+'What weighs you down')}</div>${drains.map(b=>row(b,false)).join('')}</div>
+  <div class="card small" style="background:${S.tone==='techie'?'var(--surface)':'var(--accent)'};color:${S.tone==='techie'?'var(--text)':'var(--btntext)'}">
+    ${T('<span class="acc">&gt; next_month:</span> protect the morning lift on showing days.','<b>An idea for November:</b> keep your morning lift on showing days.')}</div>`;
+}
+
+const TABS = () => S.tone === 'techie'
+  ? [['⌂','Home'],['▦','Calendar'],['◔','Reports'],['⚙','Me']]
+  : [['☀︎','Today'],['📖','Journal'],['✦','Insights'],['☺︎','You']];
+function phone(body, tab, cap) {
+  const tabs = tab < 0 ? '' : `<div class="tabs">${TABS().map((t,i)=>`<div class="${i===tab?'on':''}"><i>${t[0]}</i>${t[1]}</div>`).join('')}</div>`;
+  return `<div class="pwrap"><div class="ph cs-${S.cards}"><div class="scr"><div class="status"><span>10:41</span><span>87%</span></div>${body}</div>${tabs}</div><div class="pcap">${cap}</div></div>`;
+}
+
+// ---------- apply + render ----------
+function luminance(h) { const n=parseInt(h.slice(1),16); return (0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255)); }
+function apply() {
+  const C = S.colors, r = document.documentElement.style;
+  const set = (k,v)=>r.setProperty(k,v);
+  set('--bg',C.bg); set('--surface',C.surface); set('--text',C.text); set('--muted',C.muted); set('--accent',C.accent); set('--accent2',C.accent2);
+  set('--border', mix(C.surface, C.text, .14)); set('--neg', S.mode==='dark' ? '#ff6b6b' : '#d64545');
+  set('--head', FONTS[S.head]); set('--body', FONTS[S.body]); set('--num', S.body==='mono'||S.head==='mono' ? FONTS.mono : FONTS[S.head==='serif'?'sans':S.head]);
+  set('--r', S.radius+'px'); set('--scale', S.scale/100);
+  set('--labsp', S.tone==='techie' ? '.12em' : '0'); set('--labcase', S.tone==='techie' ? 'uppercase' : 'none');
+  const onAccent = luminance(C.accent) > 150 ? '#0b0b0c' : '#ffffff';
+  const btn = { gradient:[`linear-gradient(90deg, ${C.accent}, ${C.accent2})`, luminance(C.accent)>150?'#0b0b0c':'#fff', S.radius*0.6], solid:[C.accent, onAccent, S.radius*0.6],
+                outline:['transparent', C.accent, S.radius*0.6], pill:[C.accent, onAccent, 30] }[S.button];
+  set('--btnbg', btn[0]); set('--btntext', btn[1]); set('--btnr', btn[2]+'px'); set('--btnsp', S.tone==='techie'?'.08em':'0');
+  document.querySelectorAll('.btn').forEach(()=>{});
+  document.getElementById('phones').innerHTML =
+    phone(home(),0,'Home') + phone(debrief(),-1,'Debrief: talking') + phone(typing(),-1,'Debrief: typing') + phone(calendar(),1,'Calendar + day') + phone(report(),2,'Monthly report');
+  if (S.button === 'outline') document.querySelectorAll('.btn').forEach(b=>b.style.border = '2px solid '+C.accent);
+  syncPanel();
+}
+function syncPanel() {
+  document.querySelectorAll('.seg').forEach(seg=>{ const k=seg.dataset.key; seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', S[k]===b.dataset.v)); });
+  document.querySelectorAll('#palettes button').forEach(b=>b.classList.toggle('on', b.dataset.p===S.palette));
+  document.querySelectorAll('[data-color]').forEach(i=>i.value = S.colors[i.dataset.color]);
+  document.querySelectorAll('[data-range]').forEach(i=>i.value = S[i.dataset.range]);
+  document.getElementById('rv').textContent = S.radius+'px'; document.getElementById('sv').textContent = S.scale+'%';
+  document.getElementById('out').value = JSON.stringify(S, null, 1);
+}
+
+// ---------- build panel ----------
+document.querySelectorAll('.seg').forEach(seg=>{
+  const k = seg.dataset.key;
+  seg.innerHTML = OPTIONS[k].map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');
+  seg.addEventListener('click', e=>{
+    const v = e.target.dataset.v; if (!v) return;
+    if (k === 'base') setBase(v);
+    else { S[k] = v; if (k === 'mode' && PALETTES[S.palette]) S.colors = Object.assign({}, PALETTES[S.palette][S.mode]); }
+    apply();
+  });
+});
+document.getElementById('palettes').innerHTML = Object.entries(PALETTES).map(([k,p])=>{
+  const c = p.dark; return `<button data-p="${k}"><div class="chips"><span style="background:${c.bg}"></span><span style="background:${c.accent}"></span><span style="background:${c.accent2}"></span><span style="background:${p.light.bg}"></span></div>${p.name}</button>`;
+}).join('');
+document.getElementById('palettes').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if (!b) return; S.palette = b.dataset.p; S.colors = Object.assign({}, PALETTES[S.palette][S.mode]); apply();
+});
+document.querySelectorAll('[data-color]').forEach(i=>i.addEventListener('input', ()=>{ S.colors[i.dataset.color] = i.value; S.palette = 'custom'; apply(); }));
+document.querySelectorAll('[data-range]').forEach(i=>i.addEventListener('input', ()=>{ S[i.dataset.range] = +i.value; apply(); }));
+document.getElementById('reset').onclick = ()=>{ setBase(S.base); apply(); };
+document.getElementById('send').onclick = ()=>{
+  if (window.brainstorm) { window.brainstorm.send({ type:'design-settings', settings:S }); document.getElementById('sent').textContent = 'Sent. Tell Claude in the terminal when you are done.'; }
+  else { document.getElementById('sent').textContent = 'Could not send. Copy the box above and paste it in the terminal.'; }
+};
+apply();
+</script>
+</body>
+</html>

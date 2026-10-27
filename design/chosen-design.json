@@ -1,0 +1,27 @@
+{
+  "base": "blend",
+  "mode": "dark",
+  "palette": "custom",
+  "head": "serif",
+  "body": "rounded",
+  "radius": 6,
+  "scale": 90,
+  "cards": "outline",
+  "button": "solid",
+  "mood": "pastel",
+  "dayshape": "rounded",
+  "week": "bars",
+  "debrief": "wave",
+  "report": "ring",
+  "tone": "friendly",
+  "emoji": "on",
+  "colors": {
+    "bg": "#2a2828",
+    "surface": "#2a201b",
+    "text": "#f3e8de",
+    "muted": "#a8968a",
+    "accent": "#e0895f",
+    "accent2": "#9fc29a"
+  },
+  "start": "switch"
+}
