@@ -285,6 +285,19 @@ image('spec-you-0.png', 6.0, 'Ratings, settings, turning on reminders, and delet
 image('spec-you-1.png', 6.5, 'Computer version.')
 page_break()
 
+doc.add_heading('7.11 Login, signup and first-time setup', 2)
+p('From "what is this?" to ready for the first debrief in about a minute. I kept an invite code while '
+  'classmates test it, so strangers cannot use up the free AI quota.')
+image('spec-auth-0.png', 6.5, 'Welcome, sign up, log in, and password reset.')
+image('spec-auth-1.png', 5.6, 'Five quick setup steps and the ready screen.')
+page_break()
+
+doc.add_heading('7.12 Notifications', 2)
+p('At most two a night, never guilt-trippy, and private on the lock screen. If I forget, one gentle '
+  'follow-up an hour later, then silence until tomorrow.')
+image('spec-notifications-0.png', 6.0, 'The nightly reminder, the follow-up, the app badge, and reminder settings with pause.')
+page_break()
+
 # ---------------------------------------------------------------- judgment + reflections
 doc.add_heading('8. Ideas I parked on purpose', 1)
 bullets([
@@ -306,7 +319,7 @@ bullets([
 
 doc.add_heading('10. What is next', 1)
 bullets([
-    'Build the redesigned screens for phone and computer',
+    'Turn the finished design into a written spec and build plan, then build it',
     'Voice debriefs (talk instead of type)',
     'Nightly reminders on iPhone',
     'Food and weight tracking, then food insights',

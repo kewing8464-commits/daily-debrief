@@ -132,8 +132,47 @@ Started 2026-10-28 in a design session with Karson. Mockups live in `.superpower
 - Food by food: foods eaten 3+ times, ranked by average score. Tap one to see its days; foods that usually come together are noted.
 - Needs about 3 weeks of food mentions.
 
+## You / settings (Part 6)
+- Profile (name, email, debrief count, streak).
+- Debrief: time, one follow-up reminder (on), start in Talk/Type, AI voice, productive + focus ratings.
+- Reminders per device, with Test it. Connect your AI card.
+- Food & body: maintenance, goal, food card on Today, weigh-in reminder.
+- Your data: download everything; delete account (offers a download, then type DELETE; also revokes the connector).
+- More: Install (browser only), time zone, units, help, Send feedback (to Karson), privacy, log out.
+- Saves on tap with "Saved ✓". Computer: section list on the left, details on the right.
+
+## Login, signup and setup (Part 7)
+- Welcome: name, one sentence, a day-color strip, four promises, Create an account / I already have one. No carousel.
+- Sign up:
+  - Email and password (8+, show/hide, no symbol rules).
+  - **Invite code required while testing (Karson confirmed)**. Codes are made by Karson, each with a use limit.
+  - Logs in right away with no email confirmation.
+- Log in with plain-language errors. Forgot password emails a link that opens Safari, with a note to come back to the app.
+- Setup, 5 steps with progress dots:
+  1. Name
+  2. Debrief time (8:30 / 9:00 / 9:30 / 10:00 / Other; time zone from the phone)
+  3. Talk or type (explain the mic before the iOS prompt; fall back to Type)
+  4. What to track (food on, weight off, ratings on; maintenance asked after the first week)
+  5. Reminders (Add to Home Screen steps on iPhone, then Allow; "Not now")
+- Ready screen: "Your first debrief is tonight at ..." plus "Try a quick check-in".
+- Computer: split screen, promise left, form right.
+- Later: Sign in with Apple/Google, two-factor.
+
+## Notifications (Part 8)
+- At most two a night:
+  - The nightly reminder at debrief time: personal and short, skipped if already debriefed.
+  - One follow-up 60 minutes later, only if not started. If started but unfinished, it says how far you got.
+- Tapping opens straight into the debrief.
+- App icon badge "1" until tonight's debrief is saved; clears at 4am.
+- Optional Monday 8am weigh-in, off by default.
+- Never sent: streak warnings, "you missed a day", the monthly report, marketing, tips.
+- Pause reminders: tonight / 3 days / a week / a date. Today shows a Resume button.
+- Per device; if several devices are on, only the most recently used one gets the reminder.
+- Wording: friendly, short, no guilt, at most one emoji, rotates. Lock-screen text never includes drinks, weed or people's names unless "Detailed previews" is on.
+- Checked every 15 minutes in the user's time zone. iOS 16.4+ home-screen app required on iPhone. iOS Focus/Sleep modes are respected.
+
 ## Parked for later
 - Body composition (fat vs muscle) estimate, with optional waist, smart-scale and photo inputs.
 
 ## Still to design
-- You (settings, Connect your AI, food settings), Login and signup, notifications and reminders.
+- Nothing. All screens are designed; next comes the full written spec and the build plan.
