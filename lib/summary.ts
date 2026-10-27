@@ -37,9 +37,65 @@ export function emptySummary(score: number): DaySummary {
   return DaySummarySchema.parse({ score })
 }
 
-const SYSTEM = `You turn a nightly debrief conversation into a JSON record of the person's day.
+// The model sometimes puts the wrong type in one field ("fun": true, "minutes": "45").
+// Clean each field on its own so one bad value never throws away the whole day.
+type Obj = Record<string, unknown>
+const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v)
+const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 2000) : undefined)
+const num = (v: unknown) => {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN
+  return Number.isFinite(n) ? n : undefined
+}
+const bool = (v: unknown) => (typeof v === 'boolean' ? v : v === 'yes' || v === 'true' ? true : v === 'no' || v === 'false' ? false : undefined)
+const strList = (v: unknown) => (Array.isArray(v) ? v.map(str).filter((x): x is string => !!x) : undefined)
+const prune = <T extends Obj>(o: T) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T
+
+export function cleanModelSummary(raw: unknown, score: number): DaySummary | null {
+  if (!isObj(raw)) return null
+  const o = raw
+  const sleep = isObj(o.sleep) ? o.sleep : {}
+  const workout = isObj(o.workout) ? o.workout : {}
+  const alcohol = isObj(o.alcohol) ? o.alcohol : {}
+  const cannabis = isObj(o.cannabis) ? o.cannabis : {}
+  const work = isObj(o.work) ? o.work : {}
+  const meetings = num(work.meetings)
+  const candidate = prune({
+    score,
+    sleep: prune({ bedtime: str(sleep.bedtime), wake: str(sleep.wake), hours: num(sleep.hours) }),
+    morning: str(o.morning),
+    did: str(o.did),
+    food: Array.isArray(o.food)
+      ? o.food.filter(isObj).map((f) => prune({ item: str(f.item), amount: str(f.amount) })).filter((f) => f.item)
+      : [],
+    workout: prune({ did: bool(workout.did) ?? false, type: str(workout.type), minutes: num(workout.minutes) }),
+    alcohol: prune({ drinks: num(alcohol.drinks) ?? 0, kind: str(alcohol.kind) }),
+    cannabis: prune({ used: bool(cannabis.used) ?? false, amount: str(cannabis.amount) }),
+    work: prune({
+      meetings: meetings === undefined ? undefined : Math.round(meetings),
+      good: str(work.good),
+      bad: str(work.bad),
+      enjoyed: strList(work.enjoyed),
+      disliked: strList(work.disliked),
+    }),
+    people: Array.isArray(o.people)
+      ? o.people.filter(isObj).filter((p) => str(p.name) && ['positive', 'negative', 'neutral'].includes(p.feeling as string))
+          .map((p) => ({ name: str(p.name)!, feeling: p.feeling }))
+      : [],
+    fun: str(o.fun),
+    happy: str(o.happy),
+    annoyed: str(o.annoyed),
+    standout: str(o.standout),
+    tags: strList(o.tags) ?? [],
+    oneLine: str(o.oneLine) ?? '',
+  })
+  const parsed = DaySummarySchema.safeParse(candidate)
+  return parsed.success ? parsed.data : null
+}
+
+export const SUMMARY_SYSTEM = `You turn a nightly debrief conversation into a JSON record of the person's day.
 Only record what the person actually said. Never guess a number they did not say. Keep amounts in their own words.
-Omit any field they did not talk about. Return JSON only, with these optional keys:
+Omit any field they did not talk about. Text fields are short descriptions in their words (never true/false). Numbers are plain numbers.
+Return JSON only, with these optional keys:
 sleep {bedtime, wake, hours}, morning, did, food [{item, amount}], workout {did, type, minutes},
 alcohol {drinks, kind}, cannabis {used, amount}, work {meetings, good, bad, enjoyed[], disliked[]},
 people [{name, feeling: positive|negative|neutral}], fun, happy, annoyed, standout,
@@ -52,14 +108,14 @@ export async function summarizeTranscript(turns: Turn[], score: number, model: C
   for (let attempt = 0; attempt < 2; attempt++) {
     let raw: string
     try {
-      raw = await model.complete({ system: SYSTEM, json: true, maxTokens: 2500, messages: [{ role: 'user', content: transcript }] })
+      raw = await model.complete({ system: SUMMARY_SYSTEM, json: true, maxTokens: 2500, messages: [{ role: 'user', content: transcript }] })
     } catch (err) {
       if (err instanceof AiUnavailableError) break
       throw err
     }
     try {
-      const parsed = DaySummarySchema.safeParse({ ...JSON.parse(raw), score })
-      if (parsed.success) return { summary: parsed.data, usedAi: true }
+      const summary = cleanModelSummary(JSON.parse(raw), score)
+      if (summary) return { summary, usedAi: true }
     } catch {
       // not JSON; try once more
     }

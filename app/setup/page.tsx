@@ -34,8 +34,8 @@ export default function SetupPage() {
     })
     setBusy(false)
     if (error) return setError(error.message)
-    router.replace('/')
-    router.refresh()
+    // Full load so the server sees the new profile (a client refresh here cancelled the navigation).
+    window.location.replace('/')
   }
 
   const input = 'w-full rounded-card border border-line bg-bg px-3 py-3 text-base outline-none focus:border-accent'

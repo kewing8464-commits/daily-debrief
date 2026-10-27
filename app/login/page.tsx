@@ -1,11 +1,9 @@
 'use client'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Card } from '@/components/Card'
 import { createBrowserSupabase } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,8 +21,8 @@ export default function LoginPage() {
         : await supabase.auth.signUp({ email, password })
     setBusy(false)
     if (error) return setError(error.message)
-    router.replace(mode === 'signup' ? '/setup' : '/')
-    router.refresh()
+    // Full load so the server sees the new session cookie.
+    window.location.replace(mode === 'signup' ? '/setup' : '/')
   }
 
   const input = 'w-full rounded-card border border-line bg-bg px-3 py-3 text-base outline-none focus:border-accent'

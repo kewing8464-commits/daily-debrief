@@ -34,8 +34,7 @@ export default function SettingsPage() {
 
   async function logOut() {
     await createBrowserSupabase().auth.signOut()
-    router.replace('/login')
-    router.refresh()
+    window.location.replace('/login')
   }
 
   return (
