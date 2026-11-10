@@ -358,6 +358,22 @@ p('All of the math lives in one tested module (127 automated tests in the app), 
   'checked the statistics before it went live.', color=GREY, size=10)
 page_break()
 
+doc.add_heading('10. Vibe checks: building live with the app open', 1)
+p('For this feature I worked differently: I kept the live app open while the AI built, and every finished '
+  'change was pushed to GitHub and went live on the real URL about a minute later.')
+p('Vibe checks were my idea from the design session: note something the moment it happens (about 20 seconds), '
+  'and that night the debrief already knows it. The AI reads the notes first, skips what they cover, and asks '
+  'about the rest, so the debrief gets shorter.')
+image_row(['vc-sheet.png', 'vc-today.png', 'vc-debrief.png'], 1.95,
+          'Adding a vibe check, the day so far on Today, and the night debrief opening from the notes.')
+image('vc-today-desk.png', 6.5, 'On a laptop: type a vibe check right on Today and press Enter.')
+bullets([
+    ('Private by design: ', 'a security check proves one account can never read or write another account\'s notes.'),
+    ('Works even if the AI is down: ', 'tags like Food or Workout mark those topics covered without any AI call.'),
+    ('Caught in testing: ', 'two notes ran together in one chat bubble. One small fix made each note its own line.'),
+])
+page_break()
+
 # ---------------------------------------------------------------- judgment + reflections
 doc.add_heading('8. Ideas I parked on purpose', 1)
 bullets([
@@ -379,7 +395,6 @@ bullets([
 
 doc.add_heading('10. What is next', 1)
 bullets([
-    'Vibe checks: quick notes during the day that the night debrief builds on',
     'Voice debriefs (talk instead of type)',
     'Nightly reminders on iPhone',
     'Food and weight tracking, then food insights',
