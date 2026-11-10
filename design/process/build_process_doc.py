@@ -403,6 +403,25 @@ bullets([
 ])
 page_break()
 
+doc.add_heading('13. Redesign: from cute to professional', 1)
+p('After living with it, the app felt too soft and too dark, with emoji everywhere. I wanted it cozy but professional, '
+  'with real charts, and nothing that looked AI-made. I compared four directions on the same screen, picked a mix '
+  '(warm light pages with see-through frosted bars, and a dark screen only for the bedtime debrief), and asked for a '
+  'Light / Dark / Match-my-phone setting.')
+image('rd-directions.png', 6.5, 'Four directions on the same screen: Paper, Dusk, Linen & Ink, and Day & Night.')
+image('rd-frost.png', 6.2, 'Choosing how see-through the frosted bars should be. I picked the middle one.')
+page_break()
+image_row(['rd-p3-today.png', 'rd-p2-journal.png', 'rd-p2-day.png'], 1.95, 'The redesigned app on a phone: Today, Journal, and a day.')
+image_row(['rd-journal-dark.png', 'rd-p3-debrief.png'], 1.95, 'Dark appearance, and the bedtime debrief that always stays dark.')
+image('rd-insights-desk.png', 6.5, 'Insights on a laptop with a real trend chart: axis, dates, and a hover crosshair.')
+bullets([
+    ('Colors checked, not guessed: ', 'the first green-and-orange pair failed a colorblind-safety check. Teal and burnt orange pass every test.'),
+    ('No emoji: ', 'every emoji became one consistent set of line icons, and the data stores plain labels instead of emoji.'),
+    ('Charts that read like charts: ', 'a y-axis, date labels, a 7-day average line, and a crosshair that shows the numbers for any day.'),
+    ('Bugs caught on the way: ', 'a page that scrolled sideways on narrow phones, and dark mode silently not applying because inline styles beat the CSS.'),
+])
+page_break()
+
 # ---------------------------------------------------------------- judgment + reflections
 doc.add_heading('8. Ideas I parked on purpose', 1)
 bullets([
