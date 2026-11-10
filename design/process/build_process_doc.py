@@ -339,6 +339,25 @@ bullets([
 p('Finally, a separate AI reviewer read the whole change with fresh eyes before it went live.')
 page_break()
 
+doc.add_heading('9. Insights: the data science part', 1)
+p('For a data science class, the most important screen is the one that turns entries into findings. '
+  '"Your recipe for a good day" tests every factor in the journal (workouts, sleep, drinks, weed, '
+  'meetings, every person and tag that shows up on 4 or more days) against the day score.')
+bullets([
+    ('The measure: ', 'average score on days with the factor, minus the average of all days in the period. '
+     'A factor only counts with at least 4 days on each side, so a single lucky day can\'t create a pattern.'),
+    ('Proof, not just a number: ', 'tapping a factor shows every day in each group as a colored square, '
+     'so anyone can check it isn\'t a fluke.'),
+    ('Confounders: ', '"Also true" lists other habits that tend to come along (for example, more sleep on workout days), '
+     'so one habit doesn\'t get credit for another\'s work.'),
+    ('Honest wording: ', 'every page says these are patterns, not proof of cause.'),
+])
+image('ins-desk.png', 6.5, 'Insights on a laptop: the month headline, the recipe, people, trends, and highlights.')
+image_row(['ins-factor-phone.png'], 2.6, 'One factor\'s proof: with vs without, every day, and what else came with it.')
+p('All of the math lives in one tested module (127 automated tests in the app), and a separate AI reviewer '
+  'checked the statistics before it went live.', color=GREY, size=10)
+page_break()
+
 # ---------------------------------------------------------------- judgment + reflections
 doc.add_heading('8. Ideas I parked on purpose', 1)
 bullets([
@@ -360,7 +379,7 @@ bullets([
 
 doc.add_heading('10. What is next', 1)
 bullets([
-    'Fill in Insights: "Your recipe for a good day" with real patterns',
+    'Vibe checks: quick notes during the day that the night debrief builds on',
     'Voice debriefs (talk instead of type)',
     'Nightly reminders on iPhone',
     'Food and weight tracking, then food insights',
