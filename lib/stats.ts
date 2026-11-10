@@ -26,3 +26,15 @@ export function weekStats(days: DayRow[], today: string) {
 
   return { bars, streak, sleepAvg }
 }
+
+/** Longest run of consecutive saved days, ever. */
+export function bestStreak(days: DayRow[]): number {
+  const dates = [...new Set(days.filter((d) => d.status === 'saved').map((d) => d.day_date))].sort()
+  let best = 0
+  let run = 0
+  dates.forEach((d, i) => {
+    run = i > 0 && shift(dates[i - 1], 1) === d ? run + 1 : 1
+    best = Math.max(best, run)
+  })
+  return best
+}
