@@ -25,3 +25,8 @@ export const TOPICS: Topic[] = [
 export const SCORE_QUESTION = "How'd today hit? 1 to 10"
 
 export const TOPIC_IDS = new Set<string>(TOPICS.map((t) => t.id))
+
+/** How many of the 12 progress segments to fill: each topic covered or skipped counts once. */
+export function progressFilled(covered: string[], skipped: string[]): number {
+  return Math.min(TOPICS.length, new Set([...covered, ...skipped].filter((id) => TOPIC_IDS.has(id))).size)
+}

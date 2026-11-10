@@ -6,14 +6,16 @@ import { startConversation, type ConversationState, type NextQuestion, type Turn
 import { debriefDateFor } from '@/lib/dates'
 import { appendSession, createDraftQueue, DRAFT_KEY, restoreDraft, serializeDraft } from '@/lib/draft'
 import { emptySummary, mergeAddedSummary, type DaySummary } from '@/lib/summary'
-import { SCORE_QUESTION, TOPICS } from '@/lib/topics'
+import { FOCUS_LABELS, FOCUS_QUESTION, PRODUCTIVE_LABELS, PRODUCTIVE_QUESTION } from '@/lib/ratings'
+import { progressFilled, SCORE_QUESTION, TOPICS } from '@/lib/topics'
 import { Bubble } from './Bubble'
 import { QuickReplies } from './QuickReplies'
+import { RatingPicker } from './RatingPicker'
 import { ScorePicker } from './ScorePicker'
 import { SummaryForm } from './SummaryForm'
 
 type Phase = 'loading' | 'chat' | 'score' | 'summarizing' | 'review' | 'saving'
-type SavedDay = { transcript: Turn[]; score: number | null; summary: DaySummary | null; status: 'draft' | 'saved'; updated_at: string; duration_sec: number | null }
+type SavedDay = { transcript: Turn[]; score: number | null; productive?: number | null; focus?: number | null; summary: DaySummary | null; status: 'draft' | 'saved'; updated_at: string; duration_sec: number | null }
 
 const MAX_ANSWER = 4000
 
@@ -29,7 +31,12 @@ function writeStorage(v: string | null) {
   } catch { /* private mode */ }
 }
 
-export function Debrief({ requestedDate }: { requestedDate?: string }) {
+function dayBefore(date: string): string {
+  const [y, m, d] = date.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10)
+}
+
+export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: string; ratingsOn?: boolean }) {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('loading')
   const [date, setDate] = useState('')
@@ -41,6 +48,9 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
   const [busy, setBusy] = useState(false)
   const [mode, setMode] = useState<'type' | 'talk'>('type')
   const [score, setScore] = useState<number | null>(null)
+  const [productive, setProductive] = useState<number | null>(null)
+  const [focus, setFocus] = useState<number | null>(null)
+  const [fromMemory, setFromMemory] = useState(false)
   const [summary, setSummary] = useState<DaySummary | null>(null)
   const [aiNote, setAiNote] = useState('')
   const [error, setError] = useState('')
@@ -70,11 +80,14 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
       }
       setTz(zone)
       setDate(d)
+      setFromMemory(d < dayBefore(today))
       started.current = Date.now()
       loadedVersion.current = row?.updated_at ?? null
       if (row?.status === 'saved') {
         setSaved(row)
         setScore(row.score)
+        setProductive(row.productive ?? null)
+        setFocus(row.focus ?? null)
         setState({ turns: [{ role: 'assistant', text: ADD_QUESTION }], covered: TOPICS.map((t) => t.id), skipped: [] })
         setNext({ topic: 'score', text: ADD_QUESTION })
       } else {
@@ -171,6 +184,9 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
           transcript: turns,
           summary,
           score: summary.score,
+          productive,
+          focus,
+          fromMemory,
           mode,
           durationSec: (saved?.duration_sec ?? 0) + thisSession,
           timezone: tz,
@@ -188,16 +204,15 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
       return setPhase('review')
     }
     writeStorage(null)
-    router.replace(`/day/${date}`)
+    router.replace(`/day/${date}?saved=1`)
     router.refresh()
   }
 
-  const asked = state.turns.filter((t) => t.role === 'assistant').length
-  const remaining = TOPICS.filter((t) => !state.covered.includes(t.id) && !state.skipped.includes(t.id) && t.id !== next?.topic).length
-  const progress = phase === 'chat' && !saved ? `Question ${asked} of about ${asked + remaining + 1}` : ''
+  const filled = progressFilled(state.covered, state.skipped)
 
   return (
-    <main className="safe-top flex min-h-dvh flex-col px-4">
+    <div className="flex min-h-dvh lg:justify-center lg:gap-8">
+    <main className="safe-top flex min-h-dvh w-full max-w-2xl flex-col px-4 lg:pt-8">
       <div className="mb-3 flex rounded-card bg-[color-mix(in_srgb,var(--text)_8%,transparent)] p-1 text-sm font-bold">
         {(['talk', 'type'] as const).map((m) => (
           <button key={m} onClick={() => setMode(m)} className={`flex-1 rounded-[5px] py-1.5 ${mode === m ? 'bg-surface text-ink' : 'text-muted'}`}>
@@ -217,7 +232,13 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
         </div>
       )}
       <div className="mb-2 flex items-center justify-between text-xs text-muted">
-        <span>{saved ? 'Adding to today' : progress}</span>
+        {saved ? (
+          <span>Adding to this day</span>
+        ) : (
+          <span className="flex flex-1 gap-[3px] pr-3" aria-label={`${filled} of 12 topics covered`}>
+            {TOPICS.map((t, i) => <span key={t.id} className={`h-[3px] flex-1 rounded ${i < filled ? 'bg-accent2' : 'bg-line'}`} />)}
+          </span>
+        )}
         <Link href="/" className="px-1 text-base">✕</Link>
       </div>
 
@@ -229,18 +250,35 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
         {phase === 'score' && (
           <div className="mt-4">
             <Bubble role="assistant" text={SCORE_QUESTION} />
-            <ScorePicker value={score} onPick={finishWithScore} />
+            <ScorePicker value={score} onPick={(n) => (ratingsOn ? setScore(n) : finishWithScore(n))} />
+            {ratingsOn && (
+              <>
+                <p className="mt-5 mb-2 font-serif text-lg">⚡ {PRODUCTIVE_QUESTION}</p>
+                <RatingPicker labels={PRODUCTIVE_LABELS} value={productive} onPick={setProductive} />
+                <p className="mt-4 mb-2 font-serif text-lg">🎯 {FOCUS_QUESTION}</p>
+                <RatingPicker labels={FOCUS_LABELS} value={focus} onPick={setFocus} />
+                <p className="mt-2 text-xs text-muted">Both optional.</p>
+                <button
+                  onClick={() => score && finishWithScore(score)}
+                  disabled={!score}
+                  className="mt-4 w-full rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-40"
+                >
+                  Next: review
+                </button>
+              </>
+            )}
           </div>
         )}
         {phase === 'summarizing' && <p className="mt-4 text-muted">Putting your day together…</p>}
         {(phase === 'review' || phase === 'saving') && summary && (
           <div className="mt-4 rounded-card border border-line bg-surface p-3.5">
+            {fromMemory && <p className="text-xs tracking-wide text-muted">FROM MEMORY</p>}
             <h2 className="mb-1 font-serif text-xl">Here&apos;s your day</h2>
             <p className="mb-3 text-sm text-muted">Fix anything that&apos;s off, then save.</p>
             {aiNote && <p className="mb-3 text-sm text-[#f2c9b4]">{aiNote}</p>}
             <SummaryForm value={summary} onChange={setSummary} />
             <button onClick={save} disabled={phase === 'saving'} className="mt-2 w-full rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-60">
-              {phase === 'saving' ? 'Saving…' : 'Save my day'}
+              {phase === 'saving' ? 'Saving…' : 'Lock it in'}
             </button>
           </div>
         )}
@@ -270,5 +308,23 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
         </div>
       )}
     </main>
+    {!saved && phase !== 'loading' && (
+      <aside className="hidden w-[260px] shrink-0 pt-8 lg:block">
+        <div className="sticky top-8 rounded-card border border-line bg-surface p-4">
+          <p className="mb-2 text-[10px] tracking-wide text-muted">TONIGHT SO FAR · {filled} OF 12</p>
+          {TOPICS.map((t) => {
+            const done = state.covered.includes(t.id)
+            const skipped = state.skipped.includes(t.id)
+            return (
+              <p key={t.id} className={`flex gap-2 py-1 text-sm ${done ? '' : 'text-muted'}`}>
+                <span className="w-4 text-center">{done ? '✓' : skipped ? '–' : '○'}</span>
+                {t.label.charAt(0).toUpperCase() + t.label.slice(1)}
+              </p>
+            )
+          })}
+        </div>
+      </aside>
+    )}
+    </div>
   )
 }
