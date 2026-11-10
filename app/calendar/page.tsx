@@ -1,8 +1,10 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/AppShell'
+import { JournalCalendar } from '@/components/JournalCalendar'
+import { COPY } from '@/lib/copy'
 import { debriefDateFor, monthGrid, monthRange, shiftMonth } from '@/lib/dates'
-import { scoreColor } from '@/lib/design'
+import { PATTERN_THRESHOLD } from '@/lib/insights'
+import { insightLine, type CalDay } from '@/lib/journal-layers'
 import { getUser } from '@/lib/supabase/server'
 
 export default async function CalendarPage({ searchParams }: PageProps<'/calendar'>) {
@@ -10,56 +12,47 @@ export default async function CalendarPage({ searchParams }: PageProps<'/calenda
   if (!user) redirect('/login')
   const { data: profile } = await supabase.from('profiles').select('timezone').eq('id', user.id).single()
   const today = debriefDateFor(new Date(), profile?.timezone ?? 'UTC')
-  const { month } = await searchParams
+  const { month, tag } = await searchParams
   const ym = typeof month === 'string' && /^\d{4}-\d{2}$/.test(month) ? month : today.slice(0, 7)
   const [y, m] = ym.split('-').map(Number)
-  const cells = monthGrid(y, m)
-
   const range = monthRange(ym)
-  const { data: rows, error } = await supabase
-    .from('days')
-    .select('day_date, score')
-    .eq('user_id', user.id)
-    .eq('status', 'saved')
-    .gte('day_date', range.from)
-    .lt('day_date', range.before)
+
+  const [{ data: rows, error }, { count }] = await Promise.all([
+    supabase
+      .from('days')
+      .select('day_date, score, summary, productive, focus')
+      .eq('user_id', user.id)
+      .eq('status', 'saved')
+      .gte('day_date', range.from)
+      .lt('day_date', range.before),
+    supabase.from('days').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'saved'),
+  ])
   if (error) throw new Error(`Could not load the calendar: ${error.message}`)
-  const scores = new Map((rows ?? []).map((r) => [r.day_date as string, r.score as number]))
-  const saved = [...scores.values()]
-  const avg = saved.length ? (saved.reduce((a, b) => a + b, 0) / saved.length).toFixed(1) : null
-  const title = new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  const days = (rows ?? []).filter((r) => r.summary && r.score) as CalDay[]
+  const totalSaved = count ?? 0
+  const insight = insightLine(days.map((d) => ({ ...d, transcript: [] })), totalSaved)
+    ?? (totalSaved < PATTERN_THRESHOLD ? COPY.stillLearning(PATTERN_THRESHOLD - totalSaved) : 'Nothing stands out this month yet.')
+
+  const current = today.slice(0, 7)
+  const next = shiftMonth(ym, 1)
+  const tagValue = typeof tag === 'string' && tag.trim() ? tag.trim().slice(0, 40) : null
+  const withTag = (target: string) => `/calendar?month=${target}${tagValue ? `&tag=${encodeURIComponent(tagValue)}` : ''}`
 
   return (
     <AppShell active="journal" wide>
-      <div className="mt-1 mb-4 flex items-center justify-between">
-        <Link href={`/calendar?month=${shiftMonth(ym, -1)}`} className="px-2 text-2xl text-muted">‹</Link>
-        <h1 className="font-serif text-2xl">{title}</h1>
-        <Link href={`/calendar?month=${shiftMonth(ym, 1)}`} className="px-2 text-2xl text-muted">›</Link>
-      </div>
-      <div className="grid grid-cols-7 gap-1.5 text-center">
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <span key={i} className="text-xs text-muted">{d}</span>
-        ))}
-        {cells.map((date, i) => {
-          if (!date) return <span key={i} />
-          const score = scores.get(date) ?? null
-          const future = date > today
-          return (
-            <Link
-              key={date}
-              href={future ? '#' : `/day/${date}`}
-              aria-disabled={future}
-              className={`flex aspect-square items-center justify-center rounded-card text-sm font-semibold ${future ? 'pointer-events-none opacity-30' : ''} ${date === today ? 'ring-2 ring-ink' : ''}`}
-              style={score ? { background: scoreColor(score), color: '#2a201b' } : { border: '1px dashed var(--muted)', color: 'var(--muted)' }}
-            >
-              {Number(date.slice(8))}
-            </Link>
-          )
-        })}
-      </div>
-      <p className="mt-4 text-center text-sm text-muted">
-        {saved.length} {saved.length === 1 ? 'debrief' : 'debriefs'} this month{avg ? ` · average day ${avg}` : ''}
-      </p>
+      <JournalCalendar
+        ym={ym}
+        title={new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })}
+        today={today}
+        cells={monthGrid(y, m)}
+        days={days}
+        prevHref={withTag(shiftMonth(ym, -1))}
+        nextHref={next <= current ? withTag(next) : null}
+        todayHref={ym === current ? null : withTag(current)}
+        insight={insight}
+        tag={tagValue}
+        clearTagHref={`/calendar?month=${ym}`}
+      />
     </AppShell>
   )
 }
