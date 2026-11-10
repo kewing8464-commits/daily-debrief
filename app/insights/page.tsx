@@ -112,8 +112,8 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
       <div className="mx-auto max-w-6xl">
         <h1 className="mt-1 mb-3 font-serif text-[1.7rem] lg:text-3xl">Insights</h1>
         {periodBar}
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div>
+        <div className="grid gap-x-4 lg:grid-cols-3 lg:grid-rows-[auto_1fr]">
+          <div className="lg:col-start-1 lg:row-start-1">
             <Card className="mb-4 flex items-center gap-4">
               <Ring value={head.avg} />
               <div>
@@ -124,19 +124,9 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
                 </p>
               </div>
             </Card>
-            <Card className="mb-4">
-              <p className="mb-2 font-semibold">People</p>
-              {people.length ? people.map((p) => (
-                <div key={p.name} className="flex justify-between border-t border-line py-1.5 text-sm first:border-t-0">
-                  <span>{p.name}</span>
-                  <span className="text-muted">{p.days} days · <b className="text-ink">{p.avg}</b></span>
-                </div>
-              )) : <p className="text-sm text-muted">Nobody came up on 2+ days in this period.</p>}
-              <p className="mt-2 text-[11px] text-muted">Average day score when they come up.</p>
-            </Card>
           </div>
 
-          <div>
+          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
             <Card className="mb-4">
               <p className="font-serif text-xl">Your recipe for a good day</p>
               <p className="mb-2 text-xs text-muted">Points above or below your average of {head.avg ?? '–'}</p>
@@ -163,7 +153,7 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
             </Card>
           </div>
 
-          <div>
+          <div className="lg:col-start-3 lg:row-span-2 lg:row-start-1">
             <Card className="mb-4">
               <p className="mb-2 font-semibold">Trends</p>
               <TrendChart metrics={TREND_METRICS} series={trendSeries} />
@@ -193,6 +183,18 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
               </div>
             </div>
             {askAi}
+          </div>
+          <div className="mt-4 lg:col-start-1 lg:row-start-2 lg:mt-0">
+              <Card className="mb-4">
+              <p className="mb-2 font-semibold">People</p>
+              {people.length ? people.map((p) => (
+                <div key={p.name} className="flex justify-between border-t border-line py-1.5 text-sm first:border-t-0">
+                  <span>{p.name}</span>
+                  <span className="text-muted">{p.days} days · <b className="text-ink">{p.avg}</b></span>
+                </div>
+              )) : <p className="text-sm text-muted">Nobody came up on 2+ days in this period.</p>}
+              <p className="mt-2 text-[11px] text-muted">Average day score when they come up.</p>
+            </Card>
           </div>
         </div>
         <p className="mt-6 text-center text-[11px] text-muted">{range.label} · {short(range.start)} to {short(range.end)}</p>
