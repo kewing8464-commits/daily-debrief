@@ -36,7 +36,7 @@ export default async function Home() {
         {new Date(`${today}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })}
       </p>
       <h1 className="mb-4 font-serif text-[1.7rem] leading-tight">
-        {greetingFor(hour)}, {profile.name} {hour >= 4 && hour < 17 ? '☀️' : '🌙'}
+        {greetingFor(hour, !!todayRow)}, {profile.name} {hour >= 4 && hour < 17 ? '☀️' : '🌙'}
       </h1>
 
       <Card className="mb-3">

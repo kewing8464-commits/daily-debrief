@@ -22,6 +22,6 @@ export const TOPICS: Topic[] = [
   { id: 'standout', label: 'anything standout or cool', question: 'Anything stand out, or anything cool happen?' },
 ]
 
-export const SCORE_QUESTION = 'How would you rate today, 1 to 10?'
+export const SCORE_QUESTION = "How'd today hit? 1 to 10"
 
 export const TOPIC_IDS = new Set<string>(TOPICS.map((t) => t.id))

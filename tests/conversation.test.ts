@@ -58,7 +58,7 @@ test('the topic just asked is always marked covered even if the model forgets it
 test('when every topic is covered or skipped the next question is the score', () => {
   const ids = TOPICS.map((t) => t.id)
   const s: ConversationState = { turns: [], covered: ids.slice(0, 6), skipped: ids.slice(6) }
-  expect(nextScriptedQuestion(s)).toEqual({ topic: 'score', text: 'How would you rate today, 1 to 10?' })
+  expect(nextScriptedQuestion(s)).toEqual({ topic: 'score', text: "How'd today hit? 1 to 10" })
 })
 
 test('skipping moves on without covering', async () => {

@@ -1,6 +1,9 @@
-/** "Good morning" / "Good afternoon" / "Good evening" for an hour 0-23. Late night counts as evening. */
-export function greetingFor(hour: number): string {
-  if (hour >= 4 && hour < 12) return 'Good morning'
+import { COPY } from '@/lib/copy'
+
+/** The Today greeting for an hour 0-23. Once tonight's debrief is saved, it's a wrap. */
+export function greetingFor(hour: number, wrapped: boolean): string {
+  if (wrapped) return COPY.wrapped
+  if (hour >= 4 && hour < 12) return 'Morning'
   if (hour >= 12 && hour < 17) return 'Good afternoon'
-  return 'Good evening'
+  return 'Evening'
 }

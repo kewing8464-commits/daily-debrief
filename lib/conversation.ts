@@ -1,4 +1,5 @@
 import type { ChatModel } from '@/lib/ai/provider'
+import { AI_VOICE } from '@/lib/copy'
 import { SCORE_QUESTION, TOPICS, TOPIC_IDS, type TopicId } from '@/lib/topics'
 
 export type Turn = { role: 'assistant' | 'user'; text: string; topic?: TopicId | 'score' }
@@ -25,12 +26,14 @@ function currentTopic(state: ConversationState): TopicId | undefined {
   return last?.topic && last.topic !== 'score' ? last.topic : undefined
 }
 
-const SYSTEM = `You are a warm, brief interviewer running someone's 5-minute nightly debrief about their day.
+export const CONVERSATION_SYSTEM = `You are a warm, brief interviewer running someone's 5-minute nightly debrief about their day.
 You get the conversation so far and the list of topics still to cover, in order.
 Reply with JSON only: {"covered": string[], "nextTopic": string, "question": string}
 - "covered": ids of every topic the user has already answered anywhere in the conversation, even in passing.
 - "nextTopic": the FIRST id in the remaining list that is not in "covered".
-- "question": one short question (under 25 words) about nextTopic. You may react to their last answer in a few words first. Casual and friendly. Never ask about a covered topic. No em dashes.`
+- "question": one short question (under 25 words) about nextTopic. You may react to their last answer in a few words first. Casual and friendly. Never ask about a covered topic. No em dashes.
+
+${AI_VOICE}`
 
 /**
  * Record the user's answer and work out the next question. The AI decides which
@@ -54,7 +57,7 @@ export async function nextTurn(
     try {
       const remaining = TOPICS.filter((t) => !covered.has(t.id) && !skipped.has(t.id))
       const raw = await model.complete({
-        system: SYSTEM,
+        system: CONVERSATION_SYSTEM,
         json: true,
         maxTokens: 1000, // reasoning models spend tokens thinking before the JSON
         messages: [{

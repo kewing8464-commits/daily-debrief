@@ -6,7 +6,7 @@ import { startConversation, type ConversationState, type NextQuestion, type Turn
 import { debriefDateFor } from '@/lib/dates'
 import { appendSession, createDraftQueue, DRAFT_KEY, restoreDraft, serializeDraft } from '@/lib/draft'
 import { emptySummary, mergeAddedSummary, type DaySummary } from '@/lib/summary'
-import { TOPICS } from '@/lib/topics'
+import { SCORE_QUESTION, TOPICS } from '@/lib/topics'
 import { Bubble } from './Bubble'
 import { QuickReplies } from './QuickReplies'
 import { ScorePicker } from './ScorePicker'
@@ -228,7 +228,7 @@ export function Debrief({ requestedDate }: { requestedDate?: string }) {
 
         {phase === 'score' && (
           <div className="mt-4">
-            <Bubble role="assistant" text="How would you rate today, 1 to 10?" />
+            <Bubble role="assistant" text={SCORE_QUESTION} />
             <ScorePicker value={score} onPick={finishWithScore} />
           </div>
         )}
