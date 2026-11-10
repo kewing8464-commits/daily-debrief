@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { TabBar } from '@/components/TabBar'
+import { AppShell } from '@/components/AppShell'
 import { debriefDateFor, monthGrid, monthRange, shiftMonth } from '@/lib/dates'
 import { scoreColor } from '@/lib/design'
 import { getUser } from '@/lib/supabase/server'
@@ -30,7 +30,7 @@ export default async function CalendarPage({ searchParams }: PageProps<'/calenda
   const title = new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 
   return (
-    <main className="safe-top flex-1 px-4 pb-28">
+    <AppShell active="journal" wide>
       <div className="mt-1 mb-4 flex items-center justify-between">
         <Link href={`/calendar?month=${shiftMonth(ym, -1)}`} className="px-2 text-2xl text-muted">‹</Link>
         <h1 className="font-serif text-2xl">{title}</h1>
@@ -60,7 +60,6 @@ export default async function CalendarPage({ searchParams }: PageProps<'/calenda
       <p className="mt-4 text-center text-sm text-muted">
         {saved.length} {saved.length === 1 ? 'debrief' : 'debriefs'} this month{avg ? ` · average day ${avg}` : ''}
       </p>
-      <TabBar active="calendar" />
-    </main>
+    </AppShell>
   )
 }

@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { DayDetail } from '@/components/DayDetail'
-import { TabBar } from '@/components/TabBar'
+import { AppShell } from '@/components/AppShell'
 import { getUser } from '@/lib/supabase/server'
 
 export default async function DayPage({ params }: PageProps<'/day/[date]'>) {
@@ -10,9 +10,8 @@ export default async function DayPage({ params }: PageProps<'/day/[date]'>) {
   if (!user) redirect('/login')
   const { data } = await supabase.from('days').select('*').eq('user_id', user.id).eq('day_date', date).maybeSingle()
   return (
-    <main className="safe-top flex-1 px-4 pb-28">
+    <AppShell active="journal" wide>
       <DayDetail date={date} day={data?.status === 'saved' ? data : null} />
-      <TabBar active="calendar" />
-    </main>
+    </AppShell>
   )
 }

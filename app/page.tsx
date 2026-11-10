@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Card } from '@/components/Card'
 import { ScoreChip } from '@/components/ScoreChip'
-import { TabBar } from '@/components/TabBar'
+import { AppShell } from '@/components/AppShell'
 import { debriefDateFor } from '@/lib/dates'
 import { scoreColor } from '@/lib/design'
 import { greetingFor } from '@/lib/greeting'
@@ -31,7 +31,7 @@ export default async function Home() {
   const todayRow = days.find((d) => d.day_date === today && d.status === 'saved')
 
   return (
-    <main className="safe-top flex-1 px-4 pb-28">
+    <AppShell active="today">
       <p className="mt-1 text-sm text-muted">
         {new Date(`${today}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })}
       </p>
@@ -86,7 +86,6 @@ export default async function Home() {
           <p className="font-serif text-2xl">{stats.sleepAvg === null ? '–' : `${stats.sleepAvg}h`}</p>
         </Card>
       </div>
-      <TabBar active="home" />
-    </main>
+    </AppShell>
   )
 }

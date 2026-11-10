@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/Card'
 import { ConnectAi } from '@/components/ConnectAi'
-import { TabBar } from '@/components/TabBar'
+import { AppShell } from '@/components/AppShell'
 import { createBrowserSupabase } from '@/lib/supabase/client'
 
 export default function SettingsPage() {
@@ -52,7 +52,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="safe-top flex-1 px-4 pb-28">
+    <AppShell active="you">
       <h1 className="mt-1 mb-4 font-serif text-2xl">{name ? `Hey ${name}` : 'You'}</h1>
       <Card className="mb-3">
         <label className="flex items-center justify-between gap-3">
@@ -79,7 +79,6 @@ export default function SettingsPage() {
         <p className="mt-1 text-sm text-muted">Everything you have saved, as a JSON file.</p>
       </Card>
       <button onClick={logOut} className="mt-2 w-full rounded-card border border-line py-3 text-muted">Log out</button>
-      <TabBar active="settings" />
-    </main>
+    </AppShell>
   )
 }
