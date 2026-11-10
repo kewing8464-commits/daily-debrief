@@ -34,6 +34,12 @@ async function main() {
     if ((upd.data ?? []).length !== 0) throw new Error('B can change A\'s days')
     const spoof = await b.client.from('days').insert({ user_id: a.id, day_date: '2026-10-28', timezone: 'UTC' })
     if (!spoof.error) throw new Error('B can write rows as A')
+    const note = await a.client.from('vibe_checks').insert({ user_id: a.id, day_date: '2026-10-27', text: 'private note' })
+    if (note.error) throw new Error('A could not write its own vibe check: ' + note.error.message)
+    const peekNote = await b.client.from('vibe_checks').select('id').eq('user_id', a.id)
+    if ((peekNote.data ?? []).length !== 0) throw new Error("B can read A's vibe checks")
+    const spoofNote = await b.client.from('vibe_checks').insert({ user_id: a.id, day_date: '2026-10-27', text: 'x' })
+    if (!spoofNote.error) throw new Error('B can write vibe checks as A')
     console.log('RLS OK')
   } finally {
     await admin.auth.admin.deleteUser(a.id)

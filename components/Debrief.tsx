@@ -87,8 +87,17 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
         setState({ turns: [{ role: 'assistant', text: ADD_QUESTION }], covered: TOPICS.map((t) => t.id), skipped: [] })
         setNext({ topic: 'score', text: ADD_QUESTION })
       } else {
-        const draft = restoreDraft(readStorage(), d) ?? (row?.transcript?.length ? { ...startConversation(), turns: row.transcript } : null)
-        const s = draft ?? startConversation()
+        let s: ConversationState | null = restoreDraft(readStorage(), d) ?? (row?.transcript?.length ? { ...startConversation(), turns: row.transcript } : null)
+        if (!s) {
+          // Fresh debrief: start from today's vibe checks if there are any.
+          try {
+            const res = await fetch('/api/debrief/start', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ date: d }) })
+            if (!res.ok) throw new Error(`start ${res.status}`)
+            s = ((await res.json()) as { state: ConversationState }).state
+          } catch {
+            s = startConversation()
+          }
+        }
         setState(s)
         const lastQ = [...s.turns].reverse().find((t) => t.role === 'assistant')!
         const topic = TOPICS.find((t) => t.id === lastQ.topic)

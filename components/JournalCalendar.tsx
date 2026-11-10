@@ -17,18 +17,20 @@ type Props = {
   insight: string
   tag: string | null
   clearTagHref: string
+  noteDates: string[]
 }
 
 const LAYER_KEY = 'dd.layer'
 const isLayer = (v: string | null): v is Layer => LAYERS.some((l) => l.id === v)
 const isDesktop = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
 
-export function JournalCalendar({ title, today, cells, days, prevHref, nextHref, todayHref, insight, tag, clearTagHref }: Props) {
+export function JournalCalendar({ title, today, cells, days, prevHref, nextHref, todayHref, insight, tag, clearTagHref, noteDates }: Props) {
   const router = useRouter()
   const [layer, setLayer] = useState<Layer>('mood')
   const [selected, setSelected] = useState<string | null>(null)
   const [peek, setPeek] = useState<string | null>(null)
   const byDate = useMemo(() => new Map(days.map((d) => [d.day_date, d])), [days])
+  const notes = useMemo(() => new Set(noteDates), [noteDates])
   const stats = monthStats(days)
   const legend = legendFor(layer)
   const hold = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -130,7 +132,7 @@ export function JournalCalendar({ title, today, cells, days, prevHref, nextHref,
         <div className="mb-2 flex items-center gap-1 text-[10px] text-muted">
           {legend.low}
           {legend.swatches.map((c, i) => <span key={i} className="h-2 w-4 rounded-sm border border-line" style={{ background: c }} />)}
-          {legend.high} · dashed = nothing recorded
+          {legend.high} · dashed = nothing recorded · <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" /> vibe checks to wrap up
         </div>
 
         {tag && (
@@ -167,6 +169,7 @@ export function JournalCalendar({ title, today, cells, days, prevHref, nextHref,
                   className={`aspect-square rounded-card border border-dashed border-line p-1 text-left text-[10px] text-muted lg:aspect-auto lg:h-20 ${future ? 'opacity-30' : ''} ${ring}`}
                 >
                   {num}
+                  {notes.has(date) && <span title="Vibe checks, not wrapped up yet" className="mt-1 block h-1.5 w-1.5 rounded-full bg-accent" />}
                 </button>
               )
             }

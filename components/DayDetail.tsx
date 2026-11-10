@@ -12,12 +12,14 @@ import { Bubble } from './Bubble'
 import { Card } from './Card'
 import { DayMenu } from './DayMenu'
 import { SummaryForm } from './SummaryForm'
+import { VibeTimeline } from './VibeTimeline'
+import type { VibeCheck } from '@/lib/vibe-checks'
 
 type Day = {
   day_date: string; score: number; summary: DaySummary; transcript: Turn[]; mode: 'type' | 'talk'; duration_sec: number | null
   timezone: string; updated_at: string; productive?: number | null; focus?: number | null; from_memory?: boolean
 }
-type View = 'summary' | 'chat'
+type View = 'summary' | 'timeline' | 'chat'
 const VIEW_KEY = 'dd.dayView'
 
 function Tile({ value, label }: { value: string; label: string }) {
@@ -29,7 +31,7 @@ function Tile({ value, label }: { value: string; label: string }) {
   )
 }
 
-export function DayDetail({ date, today, day, connected, justSaved }: { date: string; today: string; day: Day | null; connected: boolean; justSaved: boolean }) {
+export function DayDetail({ date, today, day, connected, justSaved, checks, tz }: { date: string; today: string; day: Day | null; connected: boolean; justSaved: boolean; checks: VibeCheck[]; tz: string }) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<DaySummary | null>(day?.summary ?? null)
@@ -42,8 +44,9 @@ export function DayDetail({ date, today, day, connected, justSaved }: { date: st
 
   useEffect(() => {
     try {
+      const saved = localStorage.getItem(VIEW_KEY)
       // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring a saved choice after mount
-      if (localStorage.getItem(VIEW_KEY) === 'chat') setView('chat')
+      if (saved === 'chat' || saved === 'timeline') setView(saved)
     } catch {}
   }, [])
 
@@ -84,13 +87,20 @@ export function DayDetail({ date, today, day, connected, justSaved }: { date: st
         <div className="py-16 text-center">
           <p className="text-4xl">🌙</p>
           <h1 className="mt-2 font-serif text-2xl">{COPY.emptyDay}</h1>
-          <p className="mt-1 text-sm text-muted">Nothing was saved for {title}.</p>
+          <p className="mt-1 text-sm text-muted">
+            {checks.length ? `${checks.length} vibe ${checks.length === 1 ? 'check' : 'checks'}, no debrief yet.` : `Nothing was saved for ${title}.`}
+          </p>
           {date <= today && (
             <Link href={`/debrief?date=${date}`} className="mt-6 inline-block rounded-card bg-accent px-6 py-3 font-bold text-[#1e1714]">
-              {old ? 'Add it from memory' : 'Debrief this day'}
+              {checks.length ? 'Wrap up this day' : old ? 'Add it from memory' : 'Debrief this day'}
             </Link>
           )}
         </div>
+        {checks.length > 0 && (
+          <Card className="mx-auto max-w-xl">
+            <VibeTimeline checks={checks} tz={tz} />
+          </Card>
+        )}
       </div>
     )
   }
@@ -149,6 +159,7 @@ export function DayDetail({ date, today, day, connected, justSaved }: { date: st
     </div>
   )
 
+  const timelineView = <VibeTimeline checks={checks} tz={tz} debrief={{ at: day.updated_at, score: day.score }} />
   return (
     <div className="mx-auto max-w-6xl">
       {header}
@@ -190,18 +201,26 @@ export function DayDetail({ date, today, day, connected, justSaved }: { date: st
       ) : (
         <>
           <div className="mb-3 flex rounded-full bg-surface p-1 text-sm lg:hidden">
-            {(['summary', 'chat'] as const).map((v) => (
+            {(['summary', 'timeline', 'chat'] as const).map((v) => (
               <button key={v} onClick={() => pickView(v)} className={`flex-1 rounded-full py-1.5 ${view === v ? 'bg-accent font-bold text-[#1e1714]' : 'text-muted'}`}>
-                {v === 'summary' ? 'Summary' : 'Chat'}
+                {v === 'summary' ? 'Summary' : v === 'timeline' ? 'Timeline' : 'Chat'}
               </button>
             ))}
           </div>
-          <div className="lg:hidden">{view === 'summary' ? summaryView : chatView}</div>
+          <div className="lg:hidden">{view === 'summary' ? summaryView : view === 'timeline' ? timelineView : chatView}</div>
           <div className="hidden items-start gap-6 lg:grid lg:grid-cols-[1fr_340px]">
             {summaryView}
-            <div className="rounded-card border border-line bg-surface p-3">
-              <p className="mb-2 text-[10px] tracking-wide text-muted">THE CONVERSATION</p>
-              {chatView}
+            <div>
+              {checks.length > 0 && (
+                <div className="mb-4 rounded-card border border-line bg-surface p-3">
+                  <p className="mb-2 text-[10px] tracking-wide text-muted">TIMELINE</p>
+                  {timelineView}
+                </div>
+              )}
+              <div className="rounded-card border border-line bg-surface p-3">
+                <p className="mb-2 text-[10px] tracking-wide text-muted">THE CONVERSATION</p>
+                {chatView}
+              </div>
             </div>
           </div>
         </>

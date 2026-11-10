@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/AppShell'
 import { Card } from '@/components/Card'
+import { VibeCheckButton } from '@/components/VibeCheckButton'
+import { VibeInline } from '@/components/VibeInline'
+import { VibeTimeline } from '@/components/VibeTimeline'
 import { WeekCard } from '@/components/WeekCard'
 import { COPY, streakLabel } from '@/lib/copy'
 import { debriefDateFor } from '@/lib/dates'
@@ -12,6 +15,7 @@ import { bestStreak, weekStats, type DayRow } from '@/lib/stats'
 import type { DaySummary } from '@/lib/summary'
 import { getUser } from '@/lib/supabase/server'
 import { prettyTime, startButton, toMinutes } from '@/lib/today'
+import { wrapUpYesterday, type VibeCheck } from '@/lib/vibe-checks'
 
 type Row = DayRow & { summary: DaySummary | null }
 
@@ -41,6 +45,11 @@ export default async function Today() {
     .order('day_date', { ascending: false })
     .limit(400)
   const days = (rows ?? []) as Row[]
+  const yesterdayDate = new Date(Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1, +today.slice(8, 10) - 1)).toISOString().slice(0, 10)
+  const { data: checkRows } = await supabase.from('vibe_checks').select('*').eq('user_id', user.id).in('day_date', [today, yesterdayDate]).order('created_at')
+  const allChecks = (checkRows ?? []) as VibeCheck[]
+  const todayChecks = allChecks.filter((c) => c.day_date === today)
+  const yesterdayChecks = allChecks.filter((c) => c.day_date === yesterdayDate).length
   const saved = days.filter((d) => d.status === 'saved' && d.summary && d.score)
   const stats = weekStats(days, today)
   const todayRow = saved.find((d) => d.day_date === today)
@@ -48,6 +57,8 @@ export default async function Today() {
   const best = bestStreak(days)
   const insight = insightLine(saved.slice(0, 60).map((d) => ({ day_date: d.day_date, score: d.score!, summary: d.summary!, transcript: [] })), saved.length)
   const debriefTime = prettyTime(String(profile.debrief_time))
+  const showWrapUp = wrapUpYesterday(hour, yesterdayChecks, days.some((d) => d.day_date === yesterdayDate && d.status === 'saved'))
+  const notedLine = todayChecks.length ? `${todayChecks.length} vibe ${todayChecks.length === 1 ? 'check' : 'checks'} so far` : 'about 5 minutes'
   const start = startButton(nowMin, toMinutes(String(profile.debrief_time)), !!todayRow)
   const dateLine = new Date(`${today}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })
 
@@ -68,14 +79,14 @@ export default async function Today() {
   ) : start === 'prominent' ? (
     <Card className="mb-3 border-accent">
       <p className="font-serif text-xl">Vibe check time 🌙</p>
-      <p className="mb-3 text-sm text-muted">How&apos;d today hit? About 5 minutes, talk or type.</p>
+      <p className="mb-3 text-sm text-muted">How&apos;d today hit? {todayChecks.length ? `You noted ${todayChecks.length} ${todayChecks.length === 1 ? 'thing' : 'things'} already, so it'll be quick.` : 'About 5 minutes, talk or type.'}</p>
       <Link href={`/debrief?date=${today}`} className="block rounded-card bg-accent py-3 text-center font-bold text-[#1e1714]">Start tonight&apos;s debrief</Link>
     </Card>
   ) : (
     <Card className="mb-3 flex items-center justify-between gap-3">
       <div>
         <p className="font-semibold">Tonight&apos;s debrief</p>
-        <p className="text-sm text-muted">{debriefTime} · about 5 minutes</p>
+        <p className="text-sm text-muted">{debriefTime} · {notedLine}</p>
       </div>
       {start === 'normal' ? (
         <Link href={`/debrief?date=${today}`} className="rounded-card bg-accent px-3 py-2 text-sm font-bold text-[#1e1714]">Start now</Link>
@@ -121,8 +132,23 @@ export default async function Today() {
           <h1 className="mb-4 font-serif text-[1.7rem] leading-tight lg:text-3xl">
             {todayRow ? greetingFor(hour, true) : `${greetingFor(hour, false)}, ${profile.name}`}
           </h1>
+          {showWrapUp && (
+            <Card className="mb-3 border-accent">
+              <p className="font-semibold">Yesterday&apos;s still open. 2 minutes?</p>
+              <p className="mt-0.5 mb-3 text-sm text-muted">You have {yesterdayChecks} vibe {yesterdayChecks === 1 ? 'check' : 'checks'} from yesterday to wrap up.</p>
+              <Link href={`/debrief?date=${yesterdayDate}`} className="inline-block rounded-card bg-accent px-4 py-2 text-sm font-bold text-[#1e1714]">Wrap up yesterday</Link>
+            </Card>
+          )}
           {tonight}
           {streakCard}
+          {!todayRow && <VibeInline />}
+          {todayChecks.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-2 text-sm font-semibold">Today so far <span className="font-normal text-muted">· tap to edit</span></p>
+              <VibeTimeline checks={todayChecks} tz={profile.timezone} />
+            </div>
+          )}
+          {!todayRow && <VibeCheckButton variant="fab" />}
         </div>
         <div className="lg:pt-12">
           {week}

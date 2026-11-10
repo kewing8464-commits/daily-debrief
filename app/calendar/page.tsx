@@ -17,7 +17,7 @@ export default async function CalendarPage({ searchParams }: PageProps<'/calenda
   const [y, m] = ym.split('-').map(Number)
   const range = monthRange(ym)
 
-  const [{ data: rows, error }, { count }] = await Promise.all([
+  const [{ data: rows, error }, { count }, { data: noteRows }] = await Promise.all([
     supabase
       .from('days')
       .select('day_date, score, summary, productive, focus')
@@ -26,6 +26,7 @@ export default async function CalendarPage({ searchParams }: PageProps<'/calenda
       .gte('day_date', range.from)
       .lt('day_date', range.before),
     supabase.from('days').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'saved'),
+    supabase.from('vibe_checks').select('day_date').eq('user_id', user.id).gte('day_date', range.from).lt('day_date', range.before),
   ])
   if (error) throw new Error(`Could not load the calendar: ${error.message}`)
   const days = (rows ?? []).filter((r) => r.summary && r.score) as CalDay[]
@@ -52,6 +53,7 @@ export default async function CalendarPage({ searchParams }: PageProps<'/calenda
         insight={insight}
         tag={tagValue}
         clearTagHref={`/calendar?month=${ym}`}
+        noteDates={[...new Set((noteRows ?? []).map((r) => r.day_date as string))]}
       />
     </AppShell>
   )

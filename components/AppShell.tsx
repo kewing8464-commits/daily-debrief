@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { TABS, TabBar, type TabId } from './TabBar'
+import { VibeCheckButton } from './VibeCheckButton'
 
 /**
  * Every main screen sits in this. Phone and tablet: content plus the bottom tab bar.
@@ -20,7 +21,9 @@ export function AppShell({ active, wide = false, children }: { active: TabId; wi
             {t.icon} {t.label}
           </Link>
         ))}
-        <Link href="/debrief" className="mt-auto rounded-card bg-accent py-2.5 text-center font-bold text-[#1e1714]">
+        <div className="mt-auto" />
+        <VibeCheckButton variant="sidebar" />
+        <Link href="/debrief" className="rounded-card bg-accent py-2.5 text-center font-bold text-[#1e1714]">
           Start debrief
         </Link>
       </aside>
