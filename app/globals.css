@@ -75,3 +75,12 @@ body.theme-dark { --heading: var(--night-text); }
 
 h1, h2, .font-serif { letter-spacing: -0.01em; }
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* Page headers are frosted only on phones and tablets; on computers the sidebar is the frosted part. */
+@media (max-width: 1023.98px) {
+  .glass-mobile {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    backdrop-filter: blur(18px) saturate(1.4);
+  }
+}

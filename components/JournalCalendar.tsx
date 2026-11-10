@@ -133,10 +133,13 @@ export function JournalCalendar({ title, today, cells, days, prevHref, nextHref,
             </button>
           ))}
         </div>
-        <div className="mb-2 flex items-center gap-1 text-[10px] text-muted">
-          {legend.low}
-          {legend.swatches.map((c, i) => <span key={i} className="h-2 w-4 rounded-sm border border-line" style={{ background: c }} />)}
-          {legend.high} · dashed = nothing recorded · <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" /> vibe checks to wrap up
+        <div className="mb-2 flex items-center justify-between text-[10px] text-muted">
+          <span className="flex items-center gap-1">
+            {legend.low}
+            {legend.swatches.map((c, i) => <span key={i} className="h-2 w-4 rounded-sm border border-line" style={{ background: c }} />)}
+            {legend.high}
+          </span>
+          <span className="flex items-center gap-1"><span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />to wrap up</span>
         </div>
 
         {tag && (

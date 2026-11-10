@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
  */
 export function PageHeader({ kicker, title, right, children }: { kicker?: ReactNode; title?: ReactNode; right?: ReactNode; children?: ReactNode }) {
   return (
-    <header className="glass sticky top-0 z-10 -mx-4 mb-4 border-b border-black/10 px-4 pt-[max(env(safe-area-inset-top),14px)] pb-3 lg:static lg:mx-0 lg:mb-6 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+    <header className="glass-mobile sticky top-0 z-10 -mx-4 mb-4 border-b border-black/10 px-4 pt-[max(env(safe-area-inset-top),14px)] pb-3 lg:static lg:mx-0 lg:mb-6 lg:border-0 lg:p-0">
       {(kicker || title || right) && (
         <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
           <div className="min-w-0">
