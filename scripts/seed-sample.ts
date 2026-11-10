@@ -98,7 +98,10 @@ function dayFor(date: string, kind: Kind) {
     { role: 'assistant', text: 'How would you rate today, 1 to 10?', topic: 'score' },
     { role: 'user', text: String(score), topic: 'score' },
   ]
-  return { score, summary, transcript, duration_sec: 180 + Math.floor(rand() * 240) }
+  // Productive (1-4) and focus (1-4) follow the day's kind; a few days skip them like real people do.
+  const productive = rand() < 0.1 ? null : great ? pick([3, 4, 4]) : good ? pick([3, 3, 4]) : rough ? pick([1, 1, 2]) : pick([2, 3])
+  const focus = rand() < 0.1 ? null : great ? pick([3, 4]) : good ? pick([2, 3, 3]) : rough ? pick([1, 2]) : pick([2, 2, 3])
+  return { score, productive, focus, summary, transcript, duration_sec: 180 + Math.floor(rand() * 240) }
 }
 
 function* dates(from: string, to: string) {

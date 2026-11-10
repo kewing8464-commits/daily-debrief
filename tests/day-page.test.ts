@@ -26,3 +26,8 @@ test('sections come in a fixed order', () => {
 test('a ready-made question for your AI', () => {
   expect(aiQuestion('2026-10-23', 10)).toBe('Tell me about my day on Oct 23 and what made it a 10.')
 })
+
+test('drink kind is only shown when it adds something', () => {
+  expect(filledSections({ ...emptySummary(6), alcohol: { drinks: 2, kind: 'beer' } }).find((s) => s.key === 'drinks')?.body).toBe('2 beers')
+  expect(filledSections({ ...emptySummary(6), alcohol: { drinks: 1, kind: 'IPA' } }).find((s) => s.key === 'drinks')?.body).toBe('1 beer (IPA)')
+})

@@ -26,7 +26,7 @@ export function filledSections(s: DaySummary): Section[] {
     { key: 'did', icon: '📍', title: 'What you did', body: s.did ?? '' },
     { key: 'food', icon: '🍽', title: 'Food', body: (s.food ?? []).map((f) => (f.amount ? `${f.amount} ${f.item}` : f.item)).join(', ') },
     { key: 'workout', icon: '🏋️', title: 'Workout', body: workout },
-    { key: 'drinks', icon: '🍺', title: 'Drinks', body: drinks ? `${drinks} ${drinks === 1 ? 'beer' : 'beers'}${s.alcohol?.kind ? ` (${s.alcohol.kind})` : ''}` : 'No drinks' },
+    { key: 'drinks', icon: '🍺', title: 'Drinks', body: drinks ? `${drinks} ${drinks === 1 ? 'beer' : 'beers'}${s.alcohol?.kind && !/^beers?$/i.test(s.alcohol.kind.trim()) ? ` (${s.alcohol.kind})` : ''}` : 'No drinks' },
     { key: 'weed', icon: '🌿', title: 'Weed', body: s.cannabis?.used ? s.cannabis.amount || 'Yes' : '' },
     { key: 'work', icon: '💼', title: 'Work', body: work },
     { key: 'people', icon: '👥', title: 'People', body: (s.people ?? []).map((p) => `${p.name}${face(p.feeling)}`).join(', ') },

@@ -134,7 +134,7 @@ export function DayDetail({ date, today, day, connected, justSaved }: { date: st
   const focus = ratingLabel('focus', day.focus)
 
   const summaryView = (
-    <div className="grid gap-2 lg:grid-cols-3">
+    <div className="grid content-start gap-2 self-start lg:grid-cols-3">
       {sections.map((x) => (
         <button key={x.key} onClick={() => setEditing(true)} className="rounded-card border border-line bg-surface p-3 text-left">
           <p className="font-semibold">{x.icon} {x.title}</p>
@@ -197,7 +197,7 @@ export function DayDetail({ date, today, day, connected, justSaved }: { date: st
             ))}
           </div>
           <div className="lg:hidden">{view === 'summary' ? summaryView : chatView}</div>
-          <div className="hidden gap-6 lg:grid lg:grid-cols-[1fr_340px]">
+          <div className="hidden items-start gap-6 lg:grid lg:grid-cols-[1fr_340px]">
             {summaryView}
             <div className="rounded-card border border-line bg-surface p-3">
               <p className="mb-2 text-[10px] tracking-wide text-muted">THE CONVERSATION</p>
