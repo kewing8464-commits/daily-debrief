@@ -7,6 +7,7 @@ import { debriefDateFor } from '@/lib/dates'
 import { appendSession, createDraftQueue, DRAFT_KEY, restoreDraft, serializeDraft } from '@/lib/draft'
 import { emptySummary, mergeAddedSummary, type DaySummary } from '@/lib/summary'
 import { FOCUS_LABELS, FOCUS_QUESTION, PRODUCTIVE_LABELS, PRODUCTIVE_QUESTION } from '@/lib/ratings'
+import { fromMemoryFor } from '@/lib/today'
 import { progressFilled, SCORE_QUESTION, TOPICS } from '@/lib/topics'
 import { Bubble } from './Bubble'
 import { QuickReplies } from './QuickReplies'
@@ -15,7 +16,7 @@ import { ScorePicker } from './ScorePicker'
 import { SummaryForm } from './SummaryForm'
 
 type Phase = 'loading' | 'chat' | 'score' | 'summarizing' | 'review' | 'saving'
-type SavedDay = { transcript: Turn[]; score: number | null; productive?: number | null; focus?: number | null; summary: DaySummary | null; status: 'draft' | 'saved'; updated_at: string; duration_sec: number | null }
+type SavedDay = { transcript: Turn[]; score: number | null; productive?: number | null; focus?: number | null; from_memory?: boolean | null; summary: DaySummary | null; status: 'draft' | 'saved'; updated_at: string; duration_sec: number | null }
 
 const MAX_ANSWER = 4000
 
@@ -29,11 +30,6 @@ function writeStorage(v: string | null) {
     if (v === null) localStorage.removeItem(DRAFT_KEY)
     else localStorage.setItem(DRAFT_KEY, v)
   } catch { /* private mode */ }
-}
-
-function dayBefore(date: string): string {
-  const [y, m, d] = date.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10)
 }
 
 export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: string; ratingsOn?: boolean }) {
@@ -80,7 +76,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
       }
       setTz(zone)
       setDate(d)
-      setFromMemory(d < dayBefore(today))
+      setFromMemory(fromMemoryFor(row, d, today))
       started.current = Date.now()
       loadedVersion.current = row?.updated_at ?? null
       if (row?.status === 'saved') {

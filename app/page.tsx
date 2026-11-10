@@ -80,7 +80,10 @@ export default async function Today() {
       {start === 'normal' ? (
         <Link href={`/debrief?date=${today}`} className="rounded-card bg-accent px-3 py-2 text-sm font-bold text-[#1e1714]">Start now</Link>
       ) : (
-        <span className="text-xl text-muted">🌙</span>
+        <span className="flex flex-col items-end gap-1">
+          <span className="text-xl text-muted">🌙</span>
+          {start === 'early' && <Link href={`/debrief?date=${today}`} className="text-xs text-muted underline">Start early</Link>}
+        </span>
       )}
     </Card>
   )

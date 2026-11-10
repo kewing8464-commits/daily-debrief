@@ -1,11 +1,11 @@
 import { bestStreak, type DayRow } from '@/lib/stats'
 import { emptySummary } from '@/lib/summary'
-import { startButton } from '@/lib/today'
+import { fromMemoryFor, startButton } from '@/lib/today'
 
 const DEBRIEF = 21 * 60 + 30
 
 test('the Start button appears at noon and gets big an hour before debrief time', () => {
-  expect(startButton(9 * 60, DEBRIEF, false)).toBe('hidden')
+  expect(startButton(9 * 60, DEBRIEF, false)).toBe('early') // quiet link, so a morning visitor can still start
   expect(startButton(13 * 60, DEBRIEF, false)).toBe('normal')
   expect(startButton(21 * 60, DEBRIEF, false)).toBe('prominent')
   expect(startButton(23 * 60, DEBRIEF, false)).toBe('prominent')
@@ -18,4 +18,13 @@ test('best streak is the longest run of saved days', () => {
   expect(bestStreak(['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-05', '2026-10-06'].map(row))).toBe(3)
   expect(bestStreak([])).toBe(0)
   expect(bestStreak([{ ...row('2026-10-01'), status: 'draft' }])).toBe(0)
+})
+
+test('"from memory" is decided once, when the day is first debriefed', () => {
+  // A new debrief two or more days late is from memory; yesterday is not.
+  expect(fromMemoryFor(null, '2026-11-06', '2026-11-09')).toBe(true)
+  expect(fromMemoryFor(null, '2026-11-08', '2026-11-09')).toBe(false)
+  // Adding to an already saved day keeps whatever it was saved as.
+  expect(fromMemoryFor({ status: 'saved', from_memory: false }, '2026-10-04', '2026-11-09')).toBe(false)
+  expect(fromMemoryFor({ status: 'saved', from_memory: true }, '2026-10-04', '2026-11-09')).toBe(true)
 })
