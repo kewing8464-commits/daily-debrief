@@ -14,6 +14,8 @@ import { QuickReplies } from './QuickReplies'
 import { RatingPicker } from './RatingPicker'
 import { ScorePicker } from './ScorePicker'
 import { SummaryForm } from './SummaryForm'
+import { RECORDER_MESSAGES, useRecorder } from './useRecorder'
+import { useSpeaker } from './useSpeaker'
 
 type Phase = 'loading' | 'chat' | 'score' | 'summarizing' | 'review' | 'saving'
 type SavedDay = { transcript: Turn[]; score: number | null; productive?: number | null; focus?: number | null; from_memory?: boolean | null; summary: DaySummary | null; status: 'draft' | 'saved'; updated_at: string; duration_sec: number | null }
@@ -57,6 +59,50 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
   const [loadTry, setLoadTry] = useState(0)
   const [offline, setOffline] = useState(false)
   const bottom = useRef<HTMLDivElement>(null)
+  const speaker = useSpeaker()
+  const recorder = useRecorder((text) => send(text))
+
+  // Talk by default on phones, Type on computers, unless they picked one before.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dd.mode')
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring a saved choice after mount
+      if (saved === 'talk' || saved === 'type') setMode(saved)
+      else if (!window.matchMedia('(min-width: 1024px)').matches) setMode('talk')
+    } catch {}
+  }, [])
+
+  function pickMode(m: 'talk' | 'type') {
+    setMode(m)
+    recorder.clearError()
+    try { localStorage.setItem('dd.mode', m) } catch {}
+  }
+
+  // A blocked microphone shouldn't strand anyone: drop to typing.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reacting to the recorder's permission result
+    if (recorder.error === 'denied' || recorder.error === 'unsupported') setMode('type')
+  }, [recorder.error])
+
+  // In Talk mode, read each new question out loud.
+  const spokenFor = useRef('')
+  useEffect(() => {
+    if (mode !== 'talk') return
+    const text = phase === 'chat' ? next?.text : phase === 'score' ? SCORE_QUESTION : ''
+    if (text && spokenFor.current !== text) {
+      spokenFor.current = text
+      speaker.speak(text)
+    }
+  }, [mode, phase, next, speaker])
+
+  // Keep the screen awake mid-debrief (where the browser allows it).
+  useEffect(() => {
+    if (phase !== 'chat' && phase !== 'score') return
+    let lock: { release: () => Promise<void> } | null = null
+    const nav = navigator as Navigator & { wakeLock?: { request: (t: 'screen') => Promise<{ release: () => Promise<void> }> } }
+    nav.wakeLock?.request('screen').then((l) => { lock = l }).catch(() => {})
+    return () => { lock?.release().catch(() => {}) }
+  }, [phase])
 
   // Work out which date we are debriefing, then resume a draft, add to a saved day, or start fresh.
   useEffect(() => {
@@ -220,15 +266,13 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
     <main className="safe-top flex min-h-dvh w-full max-w-2xl flex-col px-4 lg:pt-8">
       <div className="mb-3 flex rounded-card bg-[color-mix(in_srgb,var(--text)_8%,transparent)] p-1 text-sm font-bold">
         {(['talk', 'type'] as const).map((m) => (
-          <button key={m} onClick={() => setMode(m)} className={`flex-1 rounded-[5px] py-1.5 ${mode === m ? 'bg-surface text-ink' : 'text-muted'}`}>
+          <button key={m} onClick={() => pickMode(m)} className={`flex-1 rounded-[5px] py-1.5 ${mode === m ? 'bg-surface text-ink' : 'text-muted'}`}>
             {m === 'talk' ? '🎙 Talk' : '⌨️ Type'}
           </button>
         ))}
       </div>
-      {mode === 'talk' && (
-        <p className="mb-3 rounded-card border border-line bg-surface p-3 text-sm text-muted">
-          Voice is coming in the next update. For now, tap the 🎙 on your iPhone keyboard to dictate your answers.
-        </p>
+      {recorder.error && (
+        <p className="mb-3 rounded-card border border-line bg-surface p-3 text-sm text-[#f2c9b4]">{RECORDER_MESSAGES[recorder.error]}</p>
       )}
       {offline && (
         <div className="mb-3 rounded-card border border-line bg-surface p-3 text-sm">
@@ -244,7 +288,14 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
             {TOPICS.map((t, i) => <span key={t.id} className={`h-[3px] flex-1 rounded ${i < filled ? 'bg-accent2' : 'bg-line'}`} />)}
           </span>
         )}
-        <Link href="/" className="px-1 text-base">✕</Link>
+        <span className="flex items-center gap-3">
+          {mode === 'talk' && (
+            <button onClick={speaker.toggle} aria-label={speaker.on ? 'Mute the questions' : 'Read the questions out loud'} className="text-base">
+              {speaker.on ? '🔊' : '🔇'}
+            </button>
+          )}
+          <Link href="/" className="px-1 text-base">✕</Link>
+        </span>
       </div>
 
       <div className="flex-1 pb-4">
@@ -291,7 +342,33 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
         <div ref={bottom} />
       </div>
 
-      {phase === 'chat' && (
+      {phase === 'chat' && mode === 'talk' && (
+        <div className="safe-bottom sticky bottom-0 -mx-4 border-t border-line bg-bg px-4 pt-3">
+          {next?.quickReplies && recorder.status === 'idle' && <QuickReplies options={next.quickReplies} onPick={(v) => send(v)} />}
+          <div className="flex h-12 items-center justify-center gap-[3px]" aria-hidden>
+            {recorder.levels.map((v, i) => (
+              <span key={i} className="w-1 rounded bg-accent transition-[height] duration-75" style={{ height: `${Math.max(4, v * 46)}px`, opacity: recorder.status === 'recording' ? 1 : 0.35 }} />
+            ))}
+          </div>
+          <p className="mb-2 text-center text-xs text-muted">
+            {busy ? 'Thinking…' : recorder.status === 'recording' ? 'Listening… tap to stop' : recorder.status === 'transcribing' ? 'Getting your words…' : 'Tap the mic and talk'}
+          </p>
+          <div className="mb-2 flex items-center justify-between">
+            {!saved ? <button onClick={() => send('', true)} disabled={busy || recorder.status !== 'idle'} className="w-20 text-left text-sm text-muted">Skip</button> : <span className="w-20" />}
+            <button
+              onClick={() => (recorder.status === 'recording' ? recorder.stop() : recorder.start())}
+              disabled={busy || recorder.status === 'transcribing'}
+              aria-label={recorder.status === 'recording' ? 'Stop recording' : 'Start talking'}
+              className={`flex h-[72px] w-[72px] items-center justify-center rounded-full bg-accent text-2xl text-[#1e1714] disabled:opacity-50 ${recorder.status === 'recording' ? 'shadow-[0_0_0_10px_rgba(224,137,95,0.25)]' : ''}`}
+            >
+              {recorder.status === 'recording' ? '■' : '🎙'}
+            </button>
+            {!saved ? <button onClick={() => setPhase('score')} disabled={busy || recorder.status !== 'idle'} className="w-20 text-right text-sm text-muted">I&apos;m done</button> : <span className="w-20" />}
+          </div>
+        </div>
+      )}
+
+      {phase === 'chat' && mode === 'type' && (
         <div className="safe-bottom sticky bottom-0 -mx-4 border-t border-line bg-bg px-4 pt-2">
           {next?.quickReplies && <QuickReplies options={next.quickReplies} onPick={(v) => send(v)} />}
           <form onSubmit={(e) => { e.preventDefault(); send(answer) }} className="flex items-end gap-2 rounded-[20px] border border-line bg-surface py-1.5 pr-1.5 pl-3">

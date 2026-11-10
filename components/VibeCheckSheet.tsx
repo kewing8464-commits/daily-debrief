@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { VIBE_TAGS, type VibeCheck } from '@/lib/vibe-checks'
+import { RECORDER_MESSAGES, useRecorder } from './useRecorder'
 
 /** The vibe check panel: new (no `editing`) or edit/delete an existing one. Bottom sheet on phones, centered card on computers. */
 export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onClose: () => void }) {
@@ -11,6 +12,7 @@ export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onCl
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const recorder = useRecorder((t) => setText((prev) => (prev.trim() ? `${prev.trim()} ${t}` : t)))
 
   async function save() {
     if (!text.trim() || busy) return
@@ -54,7 +56,17 @@ export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onCl
           placeholder="Lunch with Galen, felt good about the move…"
           className="mt-2 w-full resize-none rounded-card border border-line bg-bg p-3 text-base outline-none focus:border-accent"
         />
-        <p className="mt-1 text-xs text-muted">Tip: tap 🎙 on your keyboard to talk instead of type.</p>
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            onClick={() => (recorder.status === 'recording' ? recorder.stop() : recorder.start())}
+            disabled={recorder.status === 'transcribing'}
+            className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${recorder.status === 'recording' ? 'border-accent bg-accent font-bold text-[#1e1714]' : 'border-line'}`}
+          >
+            {recorder.status === 'recording' ? '■ Stop' : recorder.status === 'transcribing' ? 'Getting your words…' : '🎙 Talk instead'}
+          </button>
+          {recorder.status === 'recording' && <span className="text-xs text-muted">Listening… stops when you pause</span>}
+        </div>
+        {recorder.error && <p className="mt-1 text-xs text-[#f2c9b4]">{RECORDER_MESSAGES[recorder.error]}</p>}
         <p className="mt-3 mb-1.5 text-xs text-muted">Tag it (optional)</p>
         <div className="flex flex-wrap gap-1.5">
           {VIBE_TAGS.map((t) => (
