@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/AppShell'
 import { Card } from '@/components/Card'
+import { PageHeader } from '@/components/PageHeader'
 import type { SavedDay } from '@/lib/connector/journal'
 import { debriefDateFor } from '@/lib/dates'
-import { scoreColor } from '@/lib/design'
+import { scoreColor, scoreInk } from '@/lib/design'
 import { factorDetail, PERIODS, periodRange, type Period } from '@/lib/recipe'
 import { getUser } from '@/lib/supabase/server'
 
@@ -18,8 +19,8 @@ function Squares({ days }: { days: SavedDay[] }) {
           key={d.day_date}
           href={`/day/${d.day_date}`}
           title={d.day_date}
-          className="flex h-8 w-8 items-center justify-center rounded-[5px] text-xs font-extrabold text-[#1e1714]"
-          style={{ background: scoreColor(d.score) }}
+          className="flex h-8 w-8 items-center justify-center rounded-[5px] text-xs font-extrabold"
+          style={{ background: scoreColor(d.score), color: scoreInk(d.score) }}
         >
           {d.score}
         </Link>
@@ -47,7 +48,7 @@ export default async function FactorPage({ params, searchParams }: PageProps<'/i
 
   return (
     <AppShell active="insights">
-      <Link href={back} className="mt-1 mb-3 inline-block text-sm text-muted">‹ Insights</Link>
+      <PageHeader kicker={<Link href={back}>‹ Insights</Link>} title={detail ? detail.factor.label : 'Pattern'} />
       {!detail ? (
         <Card className="text-center">
           <p className="font-serif text-xl">This pattern isn&apos;t in this period</p>
@@ -55,7 +56,6 @@ export default async function FactorPage({ params, searchParams }: PageProps<'/i
         </Card>
       ) : (
         <>
-          <h1 className="font-serif text-2xl">{detail.factor.label}</h1>
           <p className="mb-4 text-sm text-muted">{range.label} · {detail.withDays.length} days with it vs {detail.withoutDays.length} without</p>
           <Card className="mb-4 flex justify-around text-center">
             <div>

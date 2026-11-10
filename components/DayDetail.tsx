@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react'
 import { COPY } from '@/lib/copy'
 import type { Turn } from '@/lib/conversation'
 import { aiQuestion, dayNeighbors, filledSections, shortDate } from '@/lib/day-page'
-import { scoreColor } from '@/lib/design'
+import { scoreColor, scoreInk } from '@/lib/design'
 import { ratingLabel } from '@/lib/ratings'
 import type { DaySummary } from '@/lib/summary'
 import { Bubble } from './Bubble'
+import { PageHeader } from './PageHeader'
 import { Card } from './Card'
 import { DayMenu } from './DayMenu'
 import { SummaryForm } from './SummaryForm'
@@ -68,7 +69,8 @@ export function DayDetail({ date, today, day, connected, justSaved, checks, tz }
   }
 
   const header = (
-    <div className="mt-1 mb-3 flex items-center justify-between text-sm text-muted">
+    <PageHeader>
+    <div className="flex items-center justify-between text-sm font-semibold text-glass-ink lg:text-muted">
       <Link href={journalHref}>‹ Journal</Link>
       <span className="flex items-center gap-1">
         <Link href={`/day/${prev}`} aria-label="Previous day" className="px-2 text-lg">‹</Link>
@@ -77,6 +79,7 @@ export function DayDetail({ date, today, day, connected, justSaved, checks, tz }
       </span>
       {day ? <button onClick={() => setMenu(true)} aria-label="Day menu" className="px-2 text-lg">•••</button> : <span className="w-8" />}
     </div>
+    </PageHeader>
   )
 
   if (!day || !draft) {
@@ -91,7 +94,7 @@ export function DayDetail({ date, today, day, connected, justSaved, checks, tz }
             {checks.length ? `${checks.length} vibe ${checks.length === 1 ? 'check' : 'checks'}, no debrief yet.` : `Nothing was saved for ${title}.`}
           </p>
           {date <= today && (
-            <Link href={`/debrief?date=${date}`} className="mt-6 inline-block rounded-card bg-accent px-6 py-3 font-bold text-[#1e1714]">
+            <Link href={`/debrief?date=${date}`} className="mt-6 inline-block rounded-card bg-accent px-6 py-3 font-bold text-on-accent">
               {checks.length ? 'Wrap up this day' : old ? 'Add it from memory' : 'Debrief this day'}
             </Link>
           )}
@@ -167,7 +170,7 @@ export function DayDetail({ date, today, day, connected, justSaved, checks, tz }
       {error && <p className="mb-3 text-sm text-[#e89f88]">{error}</p>}
 
       <div className="mb-3 flex items-center gap-3">
-        <button onClick={() => setEditing(true)} aria-label="Change the score" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-2xl font-extrabold text-[#1e1714]" style={{ background: scoreColor(day.score) }}>
+        <button onClick={() => setEditing(true)} aria-label="Change the score" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-2xl font-extrabold" style={{ background: scoreColor(day.score), color: scoreInk(day.score) }}>
           {day.score}
         </button>
         <div>
@@ -195,14 +198,14 @@ export function DayDetail({ date, today, day, connected, justSaved, checks, tz }
           <SummaryForm value={draft} onChange={setDraft} />
           <div className="flex gap-2">
             <button onClick={() => { setDraft(day.summary); setEditing(false) }} className="flex-1 rounded-card border border-line py-3">Cancel</button>
-            <button onClick={saveEdit} className="flex-1 rounded-card bg-accent py-3 font-bold text-[#1e1714]">Save</button>
+            <button onClick={saveEdit} className="flex-1 rounded-card bg-accent py-3 font-bold text-on-accent">Save</button>
           </div>
         </Card>
       ) : (
         <>
           <div className="mb-3 flex rounded-full bg-surface p-1 text-sm lg:hidden">
             {(['summary', 'timeline', 'chat'] as const).map((v) => (
-              <button key={v} onClick={() => pickView(v)} className={`flex-1 rounded-full py-1.5 ${view === v ? 'bg-accent font-bold text-[#1e1714]' : 'text-muted'}`}>
+              <button key={v} onClick={() => pickView(v)} className={`flex-1 rounded-full py-1.5 ${view === v ? 'bg-accent font-bold text-on-accent' : 'text-muted'}`}>
                 {v === 'summary' ? 'Summary' : v === 'timeline' ? 'Timeline' : 'Chat'}
               </button>
             ))}

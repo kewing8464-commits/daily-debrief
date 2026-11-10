@@ -8,11 +8,23 @@ export const DESIGN = {
   scale: chosen.scale / 100,
 } as const
 
-// Warm pastel day colors, two scores per step (spec: Global Constraints).
-const SCORE_STEPS = ['#e89f88', '#f2c9b4', '#f0e2c4', '#c7dcb9', '#9fc29a']
+export const NIGHT = chosen.night
+export const CHART = chosen.chart
+
+// Day mood is a diverging scale: rough (burnt orange) -> neutral -> great (teal), two scores per step.
+// The pair passes the colorblind checks (dataviz validate_palette.js, light and dark).
+const SCORE_STEPS = ['#c4562a', '#e0a185', '#e3ddd4', '#7fb8c6', '#00809e']
+const SCORE_INK = ['#ffffff', '#1f1c19', '#1f1c19', '#1f1c19', '#ffffff']
+
+const step = (score: number) => Math.ceil(Math.min(10, Math.max(1, Math.round(score))) / 2) - 1
 
 export function scoreColor(score: number | null): string {
   if (score === null) return 'transparent'
-  const clamped = Math.min(10, Math.max(1, Math.round(score)))
-  return SCORE_STEPS[Math.ceil(clamped / 2) - 1]
+  return SCORE_STEPS[step(score)]
+}
+
+/** Text color that stays readable on scoreColor(score). */
+export function scoreInk(score: number | null): string {
+  if (score === null) return 'var(--text)'
+  return SCORE_INK[step(score)]
 }

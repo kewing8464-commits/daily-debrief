@@ -60,7 +60,7 @@ export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onCl
           <button
             onClick={() => (recorder.status === 'recording' ? recorder.stop() : recorder.start())}
             disabled={recorder.status === 'transcribing'}
-            className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${recorder.status === 'recording' ? 'border-accent bg-accent font-bold text-[#1e1714]' : 'border-line'}`}
+            className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${recorder.status === 'recording' ? 'border-accent bg-accent font-bold text-on-accent' : 'border-line'}`}
           >
             {recorder.status === 'recording' ? '■ Stop' : recorder.status === 'transcribing' ? 'Getting your words…' : '🎙 Talk instead'}
           </button>
@@ -73,7 +73,7 @@ export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onCl
             <button
               key={t.id}
               onClick={() => toggle(t.id)}
-              className={`rounded-full border px-3 py-1.5 text-xs ${tags.includes(t.id) ? 'border-accent2 bg-accent2 font-bold text-[#1e1714]' : 'border-line'}`}
+              className={`rounded-full border px-3 py-1.5 text-xs ${tags.includes(t.id) ? 'border-accent2 bg-accent2 font-bold text-on-accent' : 'border-line'}`}
             >
               {t.label}
             </button>
@@ -82,7 +82,7 @@ export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onCl
         {error && <p className="mt-2 text-sm text-[#e89f88]">{error}</p>}
         {confirmDelete ? (
           <div className="mt-4 mb-3 flex gap-2">
-            <button onClick={remove} disabled={busy} className="flex-1 rounded-card bg-[#e89f88] py-3 font-bold text-[#1e1714]">Delete it</button>
+            <button onClick={remove} disabled={busy} className="flex-1 rounded-card bg-[#e89f88] py-3 font-bold text-on-accent">Delete it</button>
             <button onClick={() => setConfirmDelete(false)} className="flex-1 rounded-card border border-line py-3">Keep it</button>
           </div>
         ) : (
@@ -92,7 +92,7 @@ export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onCl
             ) : (
               <button onClick={onClose} className="flex-1 rounded-card border border-line py-3">Cancel</button>
             )}
-            <button onClick={save} disabled={busy || !text.trim()} className="flex-[2] rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-50">
+            <button onClick={save} disabled={busy || !text.trim()} className="flex-[2] rounded-card bg-accent py-3 font-bold text-on-accent disabled:opacity-50">
               {busy ? 'Saving…' : editing ? 'Save' : 'Save vibe check'}
             </button>
           </div>

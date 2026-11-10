@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { scoreColor } from '@/lib/design'
+import { scoreColor, scoreInk } from '@/lib/design'
 import { timelineItems, VIBE_TAGS, vibeTime, type VibeCheck } from '@/lib/vibe-checks'
 import { VibeCheckSheet } from './VibeCheckSheet'
 
@@ -27,7 +27,7 @@ export function VibeTimeline({ checks, tz, debrief, empty }: { checks: VibeCheck
             </button>
           ) : (
             <div className="mb-3 flex flex-1 items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-extrabold text-[#1e1714]" style={{ background: scoreColor(item.score) }}>{item.score}</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-extrabold" style={{ background: scoreColor(item.score), color: scoreInk(item.score) }}>{item.score}</span>
               <p className="text-[15px]"><span className="text-[11px] text-muted">{vibeTime(item.at, tz)} · </span>Night debrief, locked in</p>
             </div>
           )}

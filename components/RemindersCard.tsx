@@ -155,7 +155,7 @@ export function RemindersCard({ zone, time, pausedUntil }: { zone: string; time:
       )}
 
       {support === 'ready' && !sub && (
-        <button onClick={turnOn} disabled={busy} className="mt-3 w-full rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-60">
+        <button onClick={turnOn} disabled={busy} className="mt-3 w-full rounded-card bg-accent py-3 font-bold text-on-accent disabled:opacity-60">
           {busy ? 'Turning on…' : 'Turn on reminders'}
         </button>
       )}

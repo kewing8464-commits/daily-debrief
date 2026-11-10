@@ -20,7 +20,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
     }
   }
   return (
-    <button onClick={copy} className="shrink-0 rounded-card bg-accent px-3 py-2 text-sm font-bold text-[#1e1714]">
+    <button onClick={copy} className="shrink-0 rounded-card bg-accent px-3 py-2 text-sm font-bold text-on-accent">
       {done ? 'Copied ✓' : label}
     </button>
   )
@@ -111,7 +111,7 @@ export function ConnectAi() {
       )}
 
       {status && !status.connected && (
-        <button onClick={create} disabled={busy} className="mt-3 w-full rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-60">
+        <button onClick={create} disabled={busy} className="mt-3 w-full rounded-card bg-accent py-3 font-bold text-on-accent disabled:opacity-60">
           Create my connector link
         </button>
       )}
@@ -131,7 +131,7 @@ export function ConnectAi() {
               : 'Your AI app loses access to your journal right away.'}
           </p>
           <div className="mt-2 flex gap-2">
-            <button onClick={confirm === 'replace' ? create : revoke} disabled={busy} className="flex-1 rounded-card bg-accent py-2.5 text-sm font-bold text-[#1e1714] disabled:opacity-60">
+            <button onClick={confirm === 'replace' ? create : revoke} disabled={busy} className="flex-1 rounded-card bg-accent py-2.5 text-sm font-bold text-on-accent disabled:opacity-60">
               {confirm === 'replace' ? 'Make a new link' : 'Revoke access'}
             </button>
             <button onClick={() => setConfirm(null)} className="flex-1 rounded-card border border-line py-2.5 text-sm">Cancel</button>

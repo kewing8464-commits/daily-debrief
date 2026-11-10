@@ -35,7 +35,7 @@ export default function LoginPage() {
           <input className={input} type="email" autoComplete="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <input className={input} type="password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} placeholder="Password (8+ characters)" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required />
           {error && <p className="text-sm text-[#e89f88]">{error}</p>}
-          <button disabled={busy} className="rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-60">
+          <button disabled={busy} className="rounded-card bg-accent py-3 font-bold text-on-accent disabled:opacity-60">
             {busy ? 'One sec…' : mode === 'signin' ? 'Log in' : 'Create account'}
           </button>
         </form>

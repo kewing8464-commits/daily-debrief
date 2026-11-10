@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/AppShell'
 import { Card } from '@/components/Card'
+import { PageHeader } from '@/components/PageHeader'
 import { CopyText } from '@/components/CopyText'
 import { TrendChart } from '@/components/TrendChart'
 import type { SavedDay } from '@/lib/connector/journal'
@@ -57,10 +58,10 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
   const trendSeries = Object.fromEntries(TREND_METRICS.map((m) => [m.id, series(days, m.id)]))
 
   const periodBar = (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
       <div className="flex rounded-full bg-surface p-1 text-xs">
         {PERIODS.map((p) => (
-          <Link key={p.id} href={`/insights?period=${p.id}`} className={`rounded-full px-3 py-1.5 ${p.id === period ? 'bg-accent font-bold text-[#1e1714]' : 'text-muted'}`}>
+          <Link key={p.id} href={`/insights?period=${p.id}`} className={`rounded-full px-3 py-1.5 ${p.id === period ? 'bg-accent font-bold text-on-accent' : 'text-muted'}`}>
             {p.label}
           </Link>
         ))}
@@ -93,7 +94,7 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
   if (progress.remaining > 0) {
     return (
       <AppShell active="insights">
-        <h1 className="mt-1 mb-4 font-serif text-[1.7rem] lg:text-3xl">Insights</h1>
+        <PageHeader title="Insights" />
         <Card className="mb-5 text-center">
           <p className="text-3xl">🌱</p>
           <p className="mt-1 font-serif text-xl">{COPY.stillLearning(progress.remaining)}</p>
@@ -110,8 +111,7 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
   return (
     <AppShell active="insights" wide>
       <div className="mx-auto max-w-6xl">
-        <h1 className="mt-1 mb-3 font-serif text-[1.7rem] lg:text-3xl">Insights</h1>
-        {periodBar}
+        <PageHeader title="Insights">{periodBar}</PageHeader>
         <div className="grid gap-x-4 lg:grid-cols-3 lg:grid-rows-[auto_1fr]">
           <div className="lg:col-start-1 lg:row-start-1">
             <Card className="mb-4 flex items-center gap-4">

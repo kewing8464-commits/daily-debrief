@@ -55,7 +55,7 @@ export default function SetupPage() {
           </label>
           <p className="text-xs text-muted">Time zone: {timezone || 'detecting…'}</p>
           {error && <p className="text-sm text-[#e89f88]">{error}</p>}
-          <button disabled={busy} className="rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-60">
+          <button disabled={busy} className="rounded-card bg-accent py-3 font-bold text-on-accent disabled:opacity-60">
             {busy ? 'Saving…' : "I'm ready"}
           </button>
         </form>

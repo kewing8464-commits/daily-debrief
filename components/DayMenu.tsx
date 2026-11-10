@@ -34,7 +34,7 @@ export function DayMenu({ dateLabel, connected, question, onEdit, onAdd, onDownl
               <button
                 disabled={busy}
                 onClick={async () => { setBusy(true); await onDelete(); setBusy(false) }}
-                className="flex-1 rounded-card bg-[#e89f88] py-2.5 font-bold text-[#1e1714] disabled:opacity-60"
+                className="flex-1 rounded-card bg-[#e89f88] py-2.5 font-bold text-on-accent disabled:opacity-60"
               >
                 Delete
               </button>

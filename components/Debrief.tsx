@@ -263,7 +263,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
   const filled = progressFilled(state.covered, state.skipped)
 
   return (
-    <div className="flex min-h-dvh lg:justify-center lg:gap-8">
+    <div className="theme-night flex min-h-dvh lg:justify-center lg:gap-8">
     <main className="safe-top flex min-h-dvh w-full max-w-2xl flex-col px-4 lg:pt-8">
       <div className="mb-3 flex rounded-card bg-[color-mix(in_srgb,var(--text)_8%,transparent)] p-1 text-sm font-bold">
         {(['talk', 'type'] as const).map((m) => (
@@ -318,7 +318,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
                 <button
                   onClick={() => score && finishWithScore(score)}
                   disabled={!score}
-                  className="mt-4 w-full rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-40"
+                  className="mt-4 w-full rounded-card bg-accent py-3 font-bold text-on-accent disabled:opacity-40"
                 >
                   Next: review
                 </button>
@@ -334,7 +334,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
             <p className="mb-3 text-sm text-muted">Fix anything that&apos;s off, then save.</p>
             {aiNote && <p className="mb-3 text-sm text-[#f2c9b4]">{aiNote}</p>}
             <SummaryForm value={summary} onChange={setSummary} />
-            <button onClick={save} disabled={phase === 'saving'} className="mt-2 w-full rounded-card bg-accent py-3 font-bold text-[#1e1714] disabled:opacity-60">
+            <button onClick={save} disabled={phase === 'saving'} className="mt-2 w-full rounded-card bg-accent py-3 font-bold text-on-accent disabled:opacity-60">
               {phase === 'saving' ? 'Saving…' : 'Lock it in'}
             </button>
           </div>
@@ -360,7 +360,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
               onClick={() => (recorder.status === 'recording' ? recorder.stop() : recorder.start())}
               disabled={busy || recorder.status === 'transcribing'}
               aria-label={recorder.status === 'recording' ? 'Stop recording' : 'Start talking'}
-              className={`flex h-[72px] w-[72px] items-center justify-center rounded-full bg-accent text-2xl text-[#1e1714] disabled:opacity-50 ${recorder.status === 'recording' ? 'shadow-[0_0_0_10px_rgba(224,137,95,0.25)]' : ''}`}
+              className={`flex h-[72px] w-[72px] items-center justify-center rounded-full bg-accent text-2xl text-on-accent disabled:opacity-50 ${recorder.status === 'recording' ? 'shadow-[0_0_0_10px_rgba(224,137,95,0.25)]' : ''}`}
             >
               {recorder.status === 'recording' ? '■' : '🎙'}
             </button>
@@ -382,7 +382,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
               maxLength={MAX_ANSWER}
               className="max-h-32 flex-1 resize-none bg-transparent py-1.5 text-base outline-none"
             />
-            <button disabled={busy || !answer.trim()} className="h-9 w-9 shrink-0 rounded-full bg-accent font-black text-[#1e1714] disabled:opacity-40">↑</button>
+            <button disabled={busy || !answer.trim()} className="h-9 w-9 shrink-0 rounded-full bg-accent font-black text-on-accent disabled:opacity-40">↑</button>
           </form>
           <div className="flex justify-between py-2 text-sm text-muted">
             {!saved ? <button onClick={() => send('', true)} disabled={busy}>Skip this one</button> : <span />}

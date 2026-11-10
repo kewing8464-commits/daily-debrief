@@ -8,7 +8,10 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent2: var(--accent2);
-  --color-line: color-mix(in srgb, var(--text) 14%, var(--surface));
+  --color-line: color-mix(in srgb, var(--text) 12%, var(--surface));
+  --color-on-accent: #ffffff;
+  --color-glass-ink: var(--glass-ink);
+  --color-heading: var(--heading);
   --radius-card: var(--radius);
   --font-serif: var(--font-serif-face);
   --font-sans: var(--font-rounded-face);
@@ -27,3 +30,48 @@ body {
 /* Leave room for the iPhone home indicator and notch in standalone mode. */
 .safe-top { padding-top: max(env(safe-area-inset-top), 12px); }
 .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 10px); }
+
+/* Frosted bars: the page scrolls underneath and shows through, softly blurred. */
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+
+/* Cards get a whisper of depth on the light theme. */
+.card-shadow { box-shadow: 0 1px 2px rgba(31, 28, 25, 0.04), 0 1px 0 rgba(31, 28, 25, 0.02); }
+
+/* Dark appearance and the bedtime debrief: a warm dusk screen, never near-black. */
+body.theme-dark,
+.theme-night {
+  --bg: var(--night-bg);
+  --surface: var(--night-surface);
+  --text: var(--night-text);
+  --muted: var(--night-muted);
+  --accent: var(--night-accent);
+  --accent2: var(--night-accent2);
+  --glass: rgba(70, 64, 60, 0.72);
+  --glass-ink: #efe6db;
+  --heading: var(--night-text);
+  background: var(--bg);
+  color: var(--text);
+}
+@media (prefers-color-scheme: dark) {
+  body.theme-system {
+    --bg: var(--night-bg);
+    --surface: var(--night-surface);
+    --text: var(--night-text);
+    --muted: var(--night-muted);
+    --accent: var(--night-accent);
+    --accent2: var(--night-accent2);
+    --glass: rgba(70, 64, 60, 0.72);
+    --glass-ink: #efe6db;
+    --heading: var(--night-text);
+  }
+}
+body { --heading: #15120f; }
+body.theme-dark { --heading: var(--night-text); }
+@media (prefers-color-scheme: dark) { body.theme-system { --heading: var(--night-text); } }
+
+h1, h2, .font-serif { letter-spacing: -0.01em; }
+.tabular { font-variant-numeric: tabular-nums; }

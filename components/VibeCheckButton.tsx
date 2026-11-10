@@ -25,7 +25,7 @@ export function VibeCheckButton({ variant }: { variant: 'fab' | 'sidebar' }) {
       {variant === 'fab' ? (
         <button
           onClick={() => setOpen(true)}
-          className="fixed right-4 bottom-24 z-20 rounded-full bg-accent px-5 py-3 font-extrabold text-[#1e1714] shadow-[0_6px_18px_rgba(0,0,0,0.45)] lg:hidden"
+          className="fixed right-4 bottom-24 z-20 rounded-full bg-accent px-5 py-3 font-extrabold text-on-accent shadow-[0_6px_18px_rgba(0,0,0,0.45)] lg:hidden"
         >
           ＋ Vibe check
         </button>

@@ -1,27 +1,37 @@
 {
-  "base": "blend",
-  "mode": "dark",
-  "palette": "custom",
-  "head": "serif",
-  "body": "rounded",
-  "radius": 6,
-  "scale": 90,
+  "base": "linen-ink + day-night",
+  "mode": "light",
+  "head": "Literata",
+  "body": "Hanken Grotesk",
+  "radius": 10,
+  "scale": 100,
   "cards": "outline",
-  "button": "solid",
-  "mood": "pastel",
-  "dayshape": "rounded",
-  "week": "bars",
-  "debrief": "wave",
-  "report": "ring",
-  "tone": "friendly",
-  "emoji": "on",
+  "bars": "frosted medium",
+  "emoji": "off",
   "colors": {
-    "bg": "#2a2828",
-    "surface": "#2a201b",
-    "text": "#f3e8de",
-    "muted": "#a8968a",
-    "accent": "#e0895f",
-    "accent2": "#9fc29a"
+    "bg": "#f2eee7",
+    "surface": "#ffffff",
+    "text": "#1f1c19",
+    "muted": "#6b645c",
+    "accent": "#b84f25",
+    "accent2": "#00809e"
   },
+  "night": {
+    "bg": "#2f2b28",
+    "surface": "#46403c",
+    "text": "#f6f0e8",
+    "muted": "#c4b8ab",
+    "accent": "#e07b48",
+    "accent2": "#1e9cc4"
+  },
+  "chart": {
+    "good": "#00809e",
+    "rough": "#c4562a",
+    "neutral": "#e3ddd4",
+    "goodNight": "#1e9cc4",
+    "roughNight": "#d06f42"
+  },
+  "glass": "rgba(214, 209, 202, 0.70)",
+  "glassInk": "#2e2925",
   "start": "switch"
 }

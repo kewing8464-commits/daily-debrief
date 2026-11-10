@@ -1,4 +1,4 @@
-import { scoreColor } from '@/lib/design'
+import { scoreColor, scoreInk } from '@/lib/design'
 
 export function ScorePicker({ value, onPick }: { value: number | null; onPick: (n: number) => void }) {
   return (
@@ -7,8 +7,8 @@ export function ScorePicker({ value, onPick }: { value: number | null; onPick: (
         <button
           key={n}
           onClick={() => onPick(n)}
-          style={{ background: scoreColor(n), outline: value === n ? '3px solid var(--text)' : undefined, outlineOffset: 2 }}
-          className="aspect-square rounded-card text-lg font-bold text-[#2a201b]"
+          style={{ background: scoreColor(n), color: scoreInk(n), outline: value === n ? '3px solid var(--text)' : undefined, outlineOffset: 2 }}
+          className="aspect-square rounded-card text-lg font-bold"
         >
           {n}
         </button>

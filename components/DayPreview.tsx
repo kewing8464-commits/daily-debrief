@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { scoreColor } from '@/lib/design'
+import { scoreColor, scoreInk } from '@/lib/design'
 import type { CalDay } from '@/lib/journal-layers'
 import { ratingLabel } from '@/lib/ratings'
 
@@ -23,7 +23,7 @@ export function DayPreview({ day }: { day: CalDay }) {
     <div>
       <p className="text-xs tracking-wide text-muted uppercase">{longDate(day.day_date)}</p>
       <div className="my-2 flex items-center gap-3">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl font-extrabold text-[#1e1714]" style={{ background: scoreColor(day.score) }}>
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl font-extrabold" style={{ background: scoreColor(day.score), color: scoreInk(day.score) }}>
           {day.score}
         </span>
         <p className="font-serif text-[17px] leading-snug">{s.oneLine || 'No recap for this day.'}</p>

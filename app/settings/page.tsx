@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/Card'
+import { PageHeader } from '@/components/PageHeader'
+import { AppearanceCard } from '@/components/AppearanceCard'
 import { ConnectAi } from '@/components/ConnectAi'
 import { RemindersCard } from '@/components/RemindersCard'
 import { AppShell } from '@/components/AppShell'
@@ -72,7 +74,7 @@ export default function SettingsPage() {
 
   return (
     <AppShell active="you">
-      <h1 className="mt-1 mb-4 font-serif text-2xl">{name ? `Hey ${name}` : 'You'}</h1>
+      <PageHeader kicker="You" title={name ? `Hey ${name}` : 'You'} />
       <Card className="mb-3">
         <label className="flex items-center justify-between gap-3">
           <span>
@@ -101,6 +103,7 @@ export default function SettingsPage() {
           </button>
         )}
       </Card>
+      <AppearanceCard />
       {loaded && <RemindersCard zone={zone} time={prettyTime(time || '21:30')} pausedUntil={pausedUntil} />}
       <ConnectAi />
       <Card className="mb-3">

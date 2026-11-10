@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Nunito, Source_Serif_4 } from 'next/font/google'
+import { Hanken_Grotesk, Literata } from 'next/font/google'
+import { cookies } from 'next/headers'
 import type { CSSProperties } from 'react'
-import { DESIGN } from '@/lib/design'
+import { parseTheme, THEME_COOKIE, themeClass } from '@/lib/theme'
+import { DESIGN, NIGHT } from '@/lib/design'
+import chosen from '@/design/chosen-design.json'
 import './globals.css'
 
-const serif = Source_Serif_4({ variable: '--font-serif-face', subsets: ['latin'] })
-const rounded = Nunito({ variable: '--font-rounded-face', subsets: ['latin'] })
+const serif = Literata({ variable: '--font-serif-face', subsets: ['latin'], weight: ['400', '600', '700'] })
+const rounded = Hanken_Grotesk({ variable: '--font-rounded-face', subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 
 export const metadata: Metadata = {
   title: 'Daily Debrief',
@@ -29,14 +32,23 @@ const themeVars = {
   '--muted': DESIGN.colors.muted,
   '--accent': DESIGN.colors.accent,
   '--accent2': DESIGN.colors.accent2,
+  '--night-bg': NIGHT.bg,
+  '--night-surface': NIGHT.surface,
+  '--night-text': NIGHT.text,
+  '--night-muted': NIGHT.muted,
+  '--night-accent': NIGHT.accent,
+  '--night-accent2': NIGHT.accent2,
+  '--glass': chosen.glass,
+  '--glass-ink': chosen.glassInk,
   '--radius': `${DESIGN.radius}px`,
   '--scale': String(DESIGN.scale),
 } as CSSProperties
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default async function RootLayout({ children }: LayoutProps<'/'>) {
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value)
   return (
     <html lang="en" style={themeVars} className={`${serif.variable} ${rounded.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className={`${themeClass(theme)} min-h-full flex flex-col`}>{children}</body>
     </html>
   )
 }

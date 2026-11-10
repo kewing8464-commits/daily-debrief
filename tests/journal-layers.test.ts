@@ -53,9 +53,10 @@ test('the month insight waits for 14 debriefs, then names the clearest pattern',
   expect(insightLine(month, 20)).toBe('Your 8+ days had a workout 100% of the time, vs 0% on rough days.')
 })
 
-test('text stays readable: dark on strong colors, light on faint ones', () => {
-  expect(cellStyle('mood', day('2026-10-01', 3)).ink).toBe('#1e1714')
-  expect(cellStyle('gym', day('2026-10-01', 8, { workout: { did: true } })).ink).toBe('#1e1714')
+test('text stays readable: white on strong colors, page ink on faint ones', () => {
+  expect(cellStyle('mood', day('2026-10-01', 3)).ink).toBe('#1f1c19')
+  expect(cellStyle('mood', day('2026-10-01', 10)).ink).toBe('#ffffff')
+  expect(cellStyle('gym', day('2026-10-01', 8, { workout: { did: true } })).ink).toBe('#ffffff')
   expect(cellStyle('drinks', day('2026-10-01', 8, { alcohol: { drinks: 1 } })).ink).toBe('var(--text)')
   expect(cellStyle('gym', day('2026-10-01', 8)).ink).toBe('var(--text)')
 })

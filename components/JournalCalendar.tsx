@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { cellStyle, dayIcons, LAYERS, legendFor, monthStats, statLayer, type CalDay, type Layer } from '@/lib/journal-layers'
 import { DayPreview } from './DayPreview'
+import { PageHeader } from './PageHeader'
 
 type Props = {
   ym: string
@@ -100,15 +101,17 @@ export function JournalCalendar({ title, today, cells, days, prevHref, nextHref,
   return (
     <div className="lg:flex lg:gap-8">
       <div className="min-w-0 flex-1">
-        <div className="mt-1 mb-3 flex items-center justify-between">
-          <h1 className="font-serif text-[1.7rem] lg:text-3xl">Journal</h1>
-          <div className="flex items-center gap-1 text-muted">
-            <Link href={prevHref} aria-label="Previous month" className="px-2 text-xl">‹</Link>
-            <span className="text-sm">{title}</span>
-            {nextHref ? <Link href={nextHref} aria-label="Next month" className="px-2 text-xl">›</Link> : <span className="px-2 text-xl opacity-30">›</span>}
-            {todayHref && <Link href={todayHref} className="ml-1 rounded-card border border-line px-2 py-0.5 text-xs">Today</Link>}
-          </div>
-        </div>
+        <PageHeader
+          title="Journal"
+          right={
+            <div className="flex shrink-0 items-center gap-0.5 pb-1 text-sm font-semibold whitespace-nowrap text-glass-ink lg:text-muted">
+              <Link href={prevHref} aria-label="Previous month" className="px-2 text-xl">‹</Link>
+              <span>{title}</span>
+              {nextHref ? <Link href={nextHref} aria-label="Next month" className="px-2 text-xl">›</Link> : <span className="px-2 text-xl opacity-30">›</span>}
+              {todayHref && <Link href={todayHref} className="ml-1 rounded-card border border-black/15 px-2 py-0.5 text-xs">Today</Link>}
+            </div>
+          }
+        />
 
         <div className="mb-3 flex gap-2 lg:hidden">
           {statTile('avgScore', stats.avgScore?.toString() ?? '–', 'avg day')}
@@ -123,7 +126,7 @@ export function JournalCalendar({ title, today, cells, days, prevHref, nextHref,
               key={l.id}
               onClick={() => pickLayer(l.id)}
               title={`Shortcut: ${i + 1}`}
-              className={`shrink-0 rounded-full border px-3 py-1.5 ${layer === l.id ? 'border-accent bg-accent font-bold text-[#1e1714]' : 'border-line'}`}
+              className={`shrink-0 rounded-full border px-3 py-1.5 ${layer === l.id ? 'border-accent bg-accent font-bold text-on-accent' : 'border-line'}`}
             >
               {l.label}
             </button>

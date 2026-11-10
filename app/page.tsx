@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/AppShell'
 import { Card } from '@/components/Card'
+import { PageHeader } from '@/components/PageHeader'
 import { ClearBadge } from '@/components/ClearBadge'
 import { VibeCheckButton } from '@/components/VibeCheckButton'
 import { VibeInline } from '@/components/VibeInline'
@@ -9,7 +10,7 @@ import { VibeTimeline } from '@/components/VibeTimeline'
 import { WeekCard } from '@/components/WeekCard'
 import { COPY, streakLabel } from '@/lib/copy'
 import { debriefDateFor } from '@/lib/dates'
-import { scoreColor } from '@/lib/design'
+import { scoreColor, scoreInk } from '@/lib/design'
 import { greetingFor } from '@/lib/greeting'
 import { insightLine } from '@/lib/journal-layers'
 import { bestStreak, weekStats, type DayRow } from '@/lib/stats'
@@ -22,7 +23,7 @@ type Row = DayRow & { summary: DaySummary | null }
 
 function ScoreCircle({ score, size = 'h-12 w-12 text-xl' }: { score: number; size?: string }) {
   return (
-    <span className={`flex shrink-0 items-center justify-center rounded-full font-extrabold text-[#1e1714] ${size}`} style={{ background: scoreColor(score) }}>
+    <span className={`flex shrink-0 items-center justify-center rounded-full font-extrabold ${size}`} style={{ background: scoreColor(score), color: scoreInk(score) }}>
       {score}
     </span>
   )
@@ -82,7 +83,7 @@ export default async function Today() {
     <Card className="mb-3 border-accent">
       <p className="font-serif text-xl">Vibe check time 🌙</p>
       <p className="mb-3 text-sm text-muted">How&apos;d today hit? {todayChecks.length ? `You noted ${todayChecks.length} ${todayChecks.length === 1 ? 'thing' : 'things'} already, so it'll be quick.` : 'About 5 minutes, talk or type.'}</p>
-      <Link href={`/debrief?date=${today}`} className="block rounded-card bg-accent py-3 text-center font-bold text-[#1e1714]">Start tonight&apos;s debrief</Link>
+      <Link href={`/debrief?date=${today}`} className="block rounded-card bg-accent py-3 text-center font-bold text-on-accent">Start tonight&apos;s debrief</Link>
     </Card>
   ) : (
     <Card className="mb-3 flex items-center justify-between gap-3">
@@ -91,7 +92,7 @@ export default async function Today() {
         <p className="text-sm text-muted">{debriefTime} · {notedLine}</p>
       </div>
       {start === 'normal' ? (
-        <Link href={`/debrief?date=${today}`} className="rounded-card bg-accent px-3 py-2 text-sm font-bold text-[#1e1714]">Start now</Link>
+        <Link href={`/debrief?date=${today}`} className="rounded-card bg-accent px-3 py-2 text-sm font-bold text-on-accent">Start now</Link>
       ) : (
         <span className="flex flex-col items-end gap-1">
           <span className="text-xl text-muted">🌙</span>
@@ -130,15 +131,12 @@ export default async function Today() {
     <AppShell active="today" wide>
       <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1.3fr_1fr] lg:gap-8">
         <div>
-          <p className="mt-1 text-sm text-muted">{dateLine}</p>
-          <h1 className="mb-4 font-serif text-[1.7rem] leading-tight lg:text-3xl">
-            {todayRow ? greetingFor(hour, true) : `${greetingFor(hour, false)}, ${profile.name}`}
-          </h1>
+          <PageHeader kicker={dateLine} title={todayRow ? greetingFor(hour, true) : `${greetingFor(hour, false)}, ${profile.name}`} />
           {showWrapUp && (
             <Card className="mb-3 border-accent">
               <p className="font-semibold">Yesterday&apos;s still open. 2 minutes?</p>
               <p className="mt-0.5 mb-3 text-sm text-muted">You have {yesterdayChecks} vibe {yesterdayChecks === 1 ? 'check' : 'checks'} from yesterday to wrap up.</p>
-              <Link href={`/debrief?date=${yesterdayDate}`} className="inline-block rounded-card bg-accent px-4 py-2 text-sm font-bold text-[#1e1714]">Wrap up yesterday</Link>
+              <Link href={`/debrief?date=${yesterdayDate}`} className="inline-block rounded-card bg-accent px-4 py-2 text-sm font-bold text-on-accent">Wrap up yesterday</Link>
             </Card>
           )}
           {tonight}
@@ -152,7 +150,7 @@ export default async function Today() {
           )}
           {!todayRow && <VibeCheckButton variant="fab" />}
         </div>
-        <div className="lg:pt-12">
+        <div className="lg:pt-[92px]">
           {week}
           {yesterdayCard}
           {insightCard}

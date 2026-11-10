@@ -27,7 +27,7 @@ export function TrendChart({ metrics, series }: Props) {
           <button
             key={m.id}
             onClick={() => setMetric(m.id)}
-            className={`rounded-full border px-2.5 py-1 ${metric === m.id ? 'border-accent bg-accent font-bold text-[#1e1714]' : 'border-line'}`}
+            className={`rounded-full border px-2.5 py-1 ${metric === m.id ? 'border-accent bg-accent font-bold text-on-accent' : 'border-line'}`}
           >
             {m.label}
           </button>

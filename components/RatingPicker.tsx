@@ -11,7 +11,7 @@ export function RatingPicker({ labels, value, onPick }: { labels: readonly strin
           <button
             key={label}
             onClick={() => onPick(on ? null : n)}
-            className={`rounded-card border py-2.5 text-[13px] ${on ? 'border-accent2 bg-accent2 font-bold text-[#1e1714]' : 'border-line'}`}
+            className={`rounded-card border py-2.5 text-[13px] ${on ? 'border-accent2 bg-accent2 font-bold text-on-accent' : 'border-line'}`}
           >
             {label}
           </button>

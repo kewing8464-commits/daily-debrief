@@ -1,5 +1,5 @@
 import { compareDays, type SavedDay } from '@/lib/connector/journal'
-import { scoreColor } from '@/lib/design'
+import { scoreColor, scoreInk } from '@/lib/design'
 import { PATTERN_THRESHOLD } from '@/lib/insights'
 import type { DaySummary } from '@/lib/summary'
 
@@ -17,8 +17,8 @@ export const LAYERS: { id: Layer; label: string }[] = [
 
 export type CalDay = { day_date: string; score: number; summary: DaySummary; productive: number | null; focus: number | null }
 
-const SAGE = '159, 194, 154'
-const TERRA = '224, 137, 95'
+const SAGE = '0, 128, 158' // teal (good / more)
+const TERRA = '196, 86, 42' // burnt orange (drinks)
 const rgba = (rgb: string, a: number) => `rgba(${rgb}, ${Math.round(a * 100) / 100})`
 const SURFACE = 'var(--surface)'
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x))
@@ -28,13 +28,13 @@ const drinksOf = (d: CalDay) => d.summary.alcohol?.drinks ?? 0
 const workedOut = (d: CalDay) => !!d.summary.workout?.did
 
 type Cell = { background: string; empty: boolean; ink: string }
-const DARK_INK = '#1e1714'
+const STRONG_INK = '#ffffff'
 const LIGHT_INK = 'var(--text)'
 
 /** Background (and readable text color) for one day under a layer. `empty` means "nothing recorded". */
 export function cellStyle(layer: Layer, d: CalDay): Cell {
   const { background, empty, alpha } = paint(layer, d)
-  return { background, empty, ink: alpha >= 0.55 ? DARK_INK : LIGHT_INK }
+  return { background, empty, ink: layer === 'mood' ? scoreInk(d.score) : alpha >= 0.55 ? STRONG_INK : LIGHT_INK }
 }
 
 function paint(layer: Layer, d: CalDay): { background: string; empty: boolean; alpha: number } {
