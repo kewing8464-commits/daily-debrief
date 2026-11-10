@@ -88,3 +88,58 @@ test('trend series carries a 7-day average', () => {
   expect(s).toHaveLength(20)
   expect(s[6].avg7).toBe(9)
 })
+
+// ---- review fixes ----
+const flipped: SavedDay[] = [
+  ...[9, 9, 8, 9].map((s, i) => mk(i, s, { sleep: { hours: 5 }, alcohol: { drinks: 0 } })),
+  ...[3, 4, 3, 4].map((s, i) => mk(i + 4, s, { sleep: { hours: 8 }, alcohol: { drinks: 4 } })),
+]
+
+test('"worth trying" follows the factor\'s own direction, not just its family', () => {
+  // Here short sleep lines up with BETTER days, so no "protect your bedtime" advice.
+  expect(factorDetail(flipped, 'sleep-6')!.worthTrying).not.toMatch(/protecting your bedtime/)
+  expect(factorDetail(flipped, 'sleep-7.5')!.worthTrying).not.toMatch(/more sleep might be worth/)
+  expect(factorDetail(flipped, 'drinks-0')!.worthTrying).not.toMatch(/day after a few drinks/)
+})
+
+test('"also true" never lists a sibling that is true by definition', () => {
+  const lines = factorDetail(days, 'drinks-0')!.alsoTrue
+  for (const l of lines) expect(l).not.toMatch(/drinks/)
+  expect(factorDetail(days, 'sleep-7.5')!.alsoTrue.join(' ')).not.toMatch(/slept/)
+})
+
+test('a name written twice on one day counts once', () => {
+  const dup = [mk(0, 10, { people: [{ name: 'Jake', feeling: 'positive' }, { name: 'jake', feeling: 'positive' }] }), mk(1, 2, { people: [{ name: 'Jake', feeling: 'neutral' }] })]
+  expect(peopleScores(dup)).toEqual([{ name: 'Jake', days: 2, avg: 6 }])
+  const four = [0, 1].flatMap((i) => [mk(i, 8, { people: [{ name: 'Jake', feeling: 'positive' }, { name: 'JAKE', feeling: 'positive' }] })])
+  expect(candidateFactors(four).map((f) => f.id)).not.toContain('person:jake')
+})
+
+test('best week dates stay inside the days it averages', () => {
+  const tail = [27, 28, 29, 30].map((d, i) => ({ ...mk(i, 9, {}), day_date: `2026-10-${d}` }))
+  expect(highlights(tail).bestWeek).toEqual({ start: '2026-10-27', end: '2026-10-30', avg: 9 })
+})
+
+test('the trend line averages the last 7 calendar days, not the last 7 entries', () => {
+  // A gap: Oct 1 (score 2), then Oct 20 to 22 (score 10). The Oct 20 average must not include Oct 1.
+  const gap = [{ ...mk(0, 2, {}) }, ...[19, 20, 21].map((i) => mk(i, 10, {}))]
+  const s = series(gap, 'score')
+  expect(s.find((p) => p.date === '2026-10-20')!.avg7).toBe(10)
+})
+
+test('the shown numbers subtract cleanly: diff = shown with-average minus shown overall average', () => {
+  for (const r of recipe(days)) {
+    const overall = Math.round((days.reduce((a, d) => a + d.score, 0) / days.length) * 10) / 10
+    expect(r.diff).toBeCloseTo(r.withAvg - overall, 5)
+  }
+})
+
+test('rounding: with 7.25 and overall 6.04 shows 7.3, 6.0 and +1.3', () => {
+  const r25 = [
+    ...[7, 7, 7, 8].map((s, i) => mk(i, s, { workout: { did: true } })),
+    ...[5, 5, 5, 5, ...Array(17).fill(6)].map((s, i) => mk(i + 4, s, {})),
+  ]
+  const w = recipe(r25).find((r) => r.id === 'workout')!
+  expect(w.withAvg).toBe(7.3)
+  expect(w.diff).toBe(1.3)
+})

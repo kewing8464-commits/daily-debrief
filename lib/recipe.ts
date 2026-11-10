@@ -57,20 +57,28 @@ const FIXED: (Factor & { also: string })[] = [
   { id: 'meetings-4', label: '💼 4+ meetings', family: 'meetings', also: 'had 4+ meetings', has: (d) => (d.summary.work?.meetings ?? 0) >= 4 },
 ]
 
+/** Names on one day, deduped ignoring case ("Jake" and "jake" are one), keeping the first spelling. */
+function uniqueByLower(names: string[]): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const raw of names) {
+    const name = raw.trim()
+    if (name && !out.has(name.toLowerCase())) out.set(name.toLowerCase(), name)
+  }
+  return out
+}
+
 /** Every factor worth testing: the fixed ones, plus people and tags that show up on 4+ days. */
 export function candidateFactors(days: SavedDay[]): Factor[] {
   const people = new Map<string, { name: string; count: number }>()
   const tags = new Map<string, { name: string; count: number }>()
   for (const d of days) {
-    for (const key of new Set((d.summary.people ?? []).map((p) => p.name.trim()))) {
-      const k = key.toLowerCase()
-      const e = people.get(k) ?? { name: key, count: 0 }
+    for (const [k, name] of uniqueByLower((d.summary.people ?? []).map((p) => p.name))) {
+      const e = people.get(k) ?? { name, count: 0 }
       e.count++
       people.set(k, e)
     }
-    for (const key of new Set((d.summary.tags ?? []).map((t) => t.trim()))) {
-      const k = key.toLowerCase()
-      const e = tags.get(k) ?? { name: key, count: 0 }
+    for (const [k, name] of uniqueByLower(d.summary.tags ?? [])) {
+      const e = tags.get(k) ?? { name, count: 0 }
       e.count++
       tags.set(k, e)
     }
@@ -97,15 +105,17 @@ export type RecipeRow = { id: string; label: string; diff: number; withAvg: numb
 
 /** The 5 factors that move the score most, vs the average of all days in the period. */
 export function recipe(days: SavedDay[]): RecipeRow[] {
-  const all = mean(days)
-  if (all === null) return []
+  const avg = mean(days)
+  if (avg === null) return []
+  const all = round1(avg)
   return candidateFactors(days)
     .map((f) => ({ f, ...split(days, f) }))
     .filter(({ withDays, withoutDays }) => withDays.length >= MIN_SIDE && withoutDays.length >= MIN_SIDE)
     .map(({ f, withDays, withoutDays }) => ({
       id: f.id,
       label: f.label,
-      diff: round1(mean(withDays)! - all),
+      // From the rounded averages, so the numbers on screen subtract cleanly.
+      diff: round1(round1(mean(withDays)!) - all),
       withAvg: round1(mean(withDays)!),
       withoutAvg: round1(mean(withoutDays)!),
       withDays: withDays.length,
@@ -125,13 +135,29 @@ const TRY: Record<Family, [string, string]> = {
   tag: ['Try adding more of this when you can, and see if the score follows.', 'Next time this comes up, notice how the rest of the day goes.'],
 }
 
+// Short sleep and no drinks point the opposite way from their family's "good" direction.
+const INVERSE = new Set(['sleep-6', 'drinks-0'])
+
+function worthTrying(factor: Factor, better: boolean): string {
+  if (factor.id === 'drinks-0') {
+    return better ? 'Try a few more drink-free days and see if the scores hold.' : 'Interesting: your drink-free days scored a bit lower. Notice what else is going on those days.'
+  }
+  if (factor.id === 'sleep-6') {
+    return better ? 'Interesting: your short-sleep days scored higher. Notice what else is going on those days.' : TRY.sleep[0]
+  }
+  if (factor.id === 'sleep-7.5' && !better) return 'Interesting: your longer-sleep days scored a bit lower. Notice what else is going on those days.'
+  const positive = INVERSE.has(factor.id) ? !better : better
+  return TRY[factor.family][positive ? 0 : 1]
+}
+
 export function factorDetail(days: SavedDay[], id: string) {
   const factor = candidateFactors(days).find((f) => f.id === id)
   if (!factor) return null
   const { withDays, withoutDays } = split(days, factor)
   if (!withDays.length || !withoutDays.length) return null
   const rate = (group: SavedDay[], f: Factor) => group.filter(f.has).length / group.length
-  const alsoTrue = FIXED.filter((f) => f.id !== factor.id)
+  // Siblings in the same family are true by definition (no drinks vs 3+ drinks), so skip them.
+  const alsoTrue = FIXED.filter((f) => f.family !== factor.family)
     .map((f) => ({ f, a: rate(withDays, f), b: rate(withoutDays, f) }))
     .filter(({ a, b }) => Math.abs(a - b) >= 0.3)
     .sort((x, y) => Math.abs(y.a - y.b) - Math.abs(x.a - x.b))
@@ -139,7 +165,7 @@ export function factorDetail(days: SavedDay[], id: string) {
     .map(({ f, a, b }) => `You also ${f.also} on ${Math.round(a * 100)}% of these days vs ${Math.round(b * 100)}% of the others.`)
   const withAvg = round1(mean(withDays)!)
   const withoutAvg = round1(mean(withoutDays)!)
-  return { factor, withDays, withoutDays, withAvg, withoutAvg, alsoTrue, worthTrying: TRY[factor.family][withAvg >= withoutAvg ? 0 : 1] }
+  return { factor, withDays, withoutDays, withAvg, withoutAvg, alsoTrue, worthTrying: worthTrying(factor, withAvg >= withoutAvg) }
 }
 
 export function headline(days: SavedDay[], prevDays: SavedDay[], isMonth = true) {
@@ -171,7 +197,7 @@ export function highlights(days: SavedDay[]) {
     const week = Array.from({ length: 7 }, (_, i) => byDate.get(shift(d.day_date, i))).filter((x): x is SavedDay => !!x)
     if (week.length < 4) continue
     const avg = round1(mean(week)!)
-    if (!bestWeek || avg > bestWeek.avg) bestWeek = { start: d.day_date, end: shift(d.day_date, 6), avg }
+    if (!bestWeek || avg > bestWeek.avg) bestWeek = { start: d.day_date, end: week[week.length - 1].day_date, avg }
   }
   let longestStreak = 0
   let run = 0
@@ -185,8 +211,7 @@ export function highlights(days: SavedDay[]) {
 export function peopleScores(days: SavedDay[]): { name: string; days: number; avg: number }[] {
   const people = new Map<string, { name: string; scores: number[] }>()
   for (const d of days) {
-    for (const name of new Set((d.summary.people ?? []).map((p) => p.name.trim()))) {
-      const k = name.toLowerCase()
+    for (const [k, name] of uniqueByLower((d.summary.people ?? []).map((p) => p.name))) {
       const e = people.get(k) ?? { name, scores: [] }
       e.scores.push(d.score)
       people.set(k, e)
@@ -208,12 +233,13 @@ export const TREND_METRICS: { id: Metric; label: string }[] = [
 ]
 export const isMetric = (v: string): v is Metric => (METRICS as readonly string[]).includes(v)
 
-/** Day-by-day values of one measure, with a trailing 7-entry average for the trend line. */
+/** Day-by-day values of one measure, with the average of the last 7 calendar days for the trend line. */
 export function series(days: SavedDay[], metric: Metric): { date: string; value: number; avg7: number }[] {
   const sorted = [...days].sort((a, b) => a.day_date.localeCompare(b.day_date))
   const points = trend(sorted, metric).points
-  return points.map((p, i) => {
-    const win = points.slice(Math.max(0, i - 6), i + 1)
+  return points.map((p) => {
+    const from = shift(p.date, -6)
+    const win = points.filter((q) => q.date >= from && q.date <= p.date)
     return { date: p.date, value: p.value, avg7: round1(win.reduce((a, b) => a + b.value, 0) / win.length) }
   })
 }
