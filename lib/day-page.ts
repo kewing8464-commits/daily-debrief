@@ -1,3 +1,4 @@
+import type { IconName } from '@/components/Icon'
 import type { DaySummary } from '@/lib/summary'
 
 function shift(date: string, days: number): string {
@@ -11,7 +12,7 @@ export function dayNeighbors(date: string, today: string): { prev: string; next:
   return { prev: shift(date, -1), next: next > today ? null : next }
 }
 
-export type Section = { key: string; icon: string; title: string; body: string }
+export type Section = { key: string; icon: IconName; title: string; body: string }
 
 /** The parts of a saved day worth showing, in reading order. Empty parts are left out. */
 export function filledSections(s: DaySummary): Section[] {
@@ -19,21 +20,21 @@ export function filledSections(s: DaySummary): Section[] {
   const workout = s.workout?.did ? [s.workout.type || 'Worked out', s.workout.minutes && `${s.workout.minutes} min`].filter(Boolean).join(' · ') : ''
   const drinks = s.alcohol?.drinks ?? 0
   const work = [s.work?.meetings !== undefined && `${s.work.meetings} ${s.work.meetings === 1 ? 'meeting' : 'meetings'}`, s.work?.good, s.work?.bad].filter(Boolean).join(' · ')
-  const face = (f: string) => (f === 'positive' ? ' 🙂' : f === 'negative' ? ' 😕' : '')
+  const face = (f: string) => (f === 'positive' ? ' (good)' : f === 'negative' ? ' (tense)' : '')
   const all: Section[] = [
-    { key: 'sleep', icon: '💤', title: 'Sleep', body: sleep },
-    { key: 'morning', icon: '🌅', title: 'Morning', body: s.morning ?? '' },
-    { key: 'did', icon: '📍', title: 'What you did', body: s.did ?? '' },
-    { key: 'food', icon: '🍽', title: 'Food', body: (s.food ?? []).map((f) => (f.amount ? `${f.amount} ${f.item}` : f.item)).join(', ') },
-    { key: 'workout', icon: '🏋️', title: 'Workout', body: workout },
-    { key: 'drinks', icon: '🍺', title: 'Drinks', body: drinks ? `${drinks} ${drinks === 1 ? 'beer' : 'beers'}${s.alcohol?.kind && !/^beers?$/i.test(s.alcohol.kind.trim()) ? ` (${s.alcohol.kind})` : ''}` : 'No drinks' },
-    { key: 'weed', icon: '🌿', title: 'Weed', body: s.cannabis?.used ? s.cannabis.amount || 'Yes' : '' },
-    { key: 'work', icon: '💼', title: 'Work', body: work },
-    { key: 'people', icon: '👥', title: 'People', body: (s.people ?? []).map((p) => `${p.name}${face(p.feeling)}`).join(', ') },
-    { key: 'fun', icon: '🎉', title: 'Fun', body: s.fun ?? '' },
-    { key: 'happy', icon: '😊', title: 'Happy', body: s.happy ?? '' },
-    { key: 'annoyed', icon: '😤', title: 'Annoyed', body: s.annoyed ?? '' },
-    { key: 'standout', icon: '⭐', title: 'Standout', body: s.standout ?? '' },
+    { key: 'sleep', icon: 'sleep', title: 'Sleep', body: sleep },
+    { key: 'morning', icon: 'morning', title: 'Morning', body: s.morning ?? '' },
+    { key: 'did', icon: 'did', title: 'What you did', body: s.did ?? '' },
+    { key: 'food', icon: 'food', title: 'Food', body: (s.food ?? []).map((f) => (f.amount ? `${f.amount} ${f.item}` : f.item)).join(', ') },
+    { key: 'workout', icon: 'workout', title: 'Workout', body: workout },
+    { key: 'drinks', icon: 'drinks', title: 'Drinks', body: drinks ? `${drinks} ${drinks === 1 ? 'beer' : 'beers'}${s.alcohol?.kind && !/^beers?$/i.test(s.alcohol.kind.trim()) ? ` (${s.alcohol.kind})` : ''}` : 'No drinks' },
+    { key: 'weed', icon: 'weed', title: 'Weed', body: s.cannabis?.used ? s.cannabis.amount || 'Yes' : '' },
+    { key: 'work', icon: 'work', title: 'Work', body: work },
+    { key: 'people', icon: 'people', title: 'People', body: (s.people ?? []).map((p) => `${p.name}${face(p.feeling)}`).join(', ') },
+    { key: 'fun', icon: 'fun', title: 'Fun', body: s.fun ?? '' },
+    { key: 'happy', icon: 'happy', title: 'Happy', body: s.happy ?? '' },
+    { key: 'annoyed', icon: 'annoyed', title: 'Annoyed', body: s.annoyed ?? '' },
+    { key: 'standout', icon: 'standout', title: 'Standout', body: s.standout ?? '' },
   ]
   return all.filter((x) => x.body)
 }

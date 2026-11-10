@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { IconName } from '@/components/Icon'
 import type { ChatModel } from '@/lib/ai/provider'
 import { nextTurn, type ConversationState, type NextQuestion } from '@/lib/conversation'
 import type { TopicId } from '@/lib/topics'
@@ -6,14 +7,14 @@ import type { TopicId } from '@/lib/topics'
 // Vibe checks: quick notes during the day. The night debrief starts from them.
 
 export const VIBE_TAGS = [
-  { id: 'food', label: '🍽 Food', topic: 'food' },
-  { id: 'workout', label: '🏋️ Workout', topic: 'workout' },
-  { id: 'people', label: '👥 People', topic: null },
-  { id: 'happy', label: '😊 Happy', topic: 'happy' },
-  { id: 'annoyed', label: '😤 Annoyed', topic: 'annoyed' },
-  { id: 'work', label: '💼 Work', topic: 'meetings' },
-  { id: 'drinks', label: '🍺 Drinks', topic: 'beers' },
-] as const satisfies readonly { id: string; label: string; topic: TopicId | null }[]
+  { id: 'food', label: 'Food', icon: 'food', topic: 'food' },
+  { id: 'workout', label: 'Workout', icon: 'workout', topic: 'workout' },
+  { id: 'people', label: 'People', icon: 'people', topic: null },
+  { id: 'happy', label: 'Happy', icon: 'happy', topic: 'happy' },
+  { id: 'annoyed', label: 'Annoyed', icon: 'annoyed', topic: 'annoyed' },
+  { id: 'work', label: 'Work', icon: 'work', topic: 'meetings' },
+  { id: 'drinks', label: 'Drinks', icon: 'drinks', topic: 'beers' },
+] as const satisfies readonly { id: string; label: string; icon: IconName; topic: TopicId | null }[]
 
 const TAG_IDS = VIBE_TAGS.map((t) => t.id) as [string, ...string[]]
 

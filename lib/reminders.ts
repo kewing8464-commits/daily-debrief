@@ -1,13 +1,13 @@
 // What the nightly reminders say, and whether this device can get them.
-// Wording rules (decisions log, Voice): friendly, short, no guilt, at most one emoji,
+// Wording rules (decisions log, Voice): friendly, short, no guilt, no emoji,
 // and never anything private on the lock screen (no drinks, weed, or what the notes say).
 
 export type ReminderItem = { kind: 'nightly' | 'followup'; name: string; day: string; started: boolean; notes: number }
 
 const NIGHTLY = [
-  (n: string) => `Vibe check 🌙 How'd today hit, ${n}?`,
+  (n: string) => `Vibe check: how'd today hit, ${n}?`,
   () => 'How did today go? About 5 minutes and you’re done.',
-  (n: string) => `Time for your debrief, ${n} 🌙`,
+  (n: string) => `Time for your debrief, ${n}.`,
   () => 'Big day or quiet one? Tell me about it.',
 ]
 
@@ -22,7 +22,7 @@ export function reminderMessage(item: ReminderItem): { title: string; body: stri
   if (item.kind === 'followup') {
     body = item.started ? 'Pick up where you left off. A couple more answers and it’s locked in.' : 'Still up? Give me 2 minutes on today.'
   } else if (item.notes > 0) {
-    body = `Vibe check 🌙 ${item.notes} vibe ${item.notes === 1 ? 'check' : 'checks'} waiting, so it'll be quick.`
+    body = `Vibe check: ${item.notes} vibe ${item.notes === 1 ? 'check' : 'checks'} waiting, so it'll be quick.`
   } else {
     body = NIGHTLY[dayIndex(item.day) % NIGHTLY.length](first)
   }

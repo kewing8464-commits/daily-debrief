@@ -10,5 +10,5 @@ test('greeting follows the time of day', () => {
 })
 
 test('after the debrief is saved, it is a wrap', () => {
-  expect(greetingFor(22, true)).toBe("That's a wrap 🌙")
+  expect(greetingFor(22, true)).toBe("That's a wrap")
 })

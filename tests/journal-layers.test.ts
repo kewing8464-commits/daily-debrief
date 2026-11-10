@@ -38,8 +38,8 @@ test('month stats, including an empty month', () => {
 })
 
 test('day icons: workout and 3+ drinks', () => {
-  expect(dayIcons(day('2026-10-01', 4, { workout: { did: true }, alcohol: { drinks: 4 } }))).toBe('🏋️🍺')
-  expect(dayIcons(day('2026-10-01', 7, { alcohol: { drinks: 2 } }))).toBe('')
+  expect(dayIcons(day('2026-10-01', 4, { workout: { did: true }, alcohol: { drinks: 4 } }))).toEqual(['workout', 'drinks'])
+  expect(dayIcons(day('2026-10-01', 7, { alcohol: { drinks: 2 } }))).toEqual([])
 })
 
 const saved = (d: CalDay): SavedDay => ({ ...d, transcript: [] })

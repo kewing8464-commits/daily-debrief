@@ -112,7 +112,7 @@ export function useRecorder(onText: (text: string) => void) {
 
 export const RECORDER_MESSAGES: Record<Exclude<RecorderError, null>, string> = {
   denied: 'The microphone is blocked. On iPhone: Settings › Safari › Microphone › Allow (or Settings › Daily Debrief). Switching to Type for now.',
-  unsupported: "This browser can't record audio. Switch to Type, or tap 🎙 on your keyboard.",
+  unsupported: "This browser can't record audio. Switch to Type, or use the mic on your keyboard.",
   failed: "Couldn't turn that into text. Try again, or switch to Type.",
   empty: "Didn't catch that. Tap the mic and try again.",
 }

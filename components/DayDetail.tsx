@@ -1,4 +1,5 @@
 'use client'
+import { Icon } from './Icon'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -88,7 +89,7 @@ export function DayDetail({ date, today, day, connected, justSaved, checks, tz }
       <div className="mx-auto max-w-3xl">
         {header}
         <div className="py-16 text-center">
-          <p className="text-4xl">🌙</p>
+          <Icon name="moon" size={36} className="mx-auto text-muted" />
           <h1 className="mt-2 font-serif text-2xl">{COPY.emptyDay}</h1>
           <p className="mt-1 text-sm text-muted">
             {checks.length ? `${checks.length} vibe ${checks.length === 1 ? 'check' : 'checks'}, no debrief yet.` : `Nothing was saved for ${title}.`}
@@ -150,7 +151,7 @@ export function DayDetail({ date, today, day, connected, justSaved, checks, tz }
     <div className="grid content-start gap-2 self-start lg:grid-cols-3">
       {sections.map((x) => (
         <button key={x.key} onClick={() => setEditing(true)} className="rounded-card border border-line bg-surface p-3 text-left">
-          <p className="font-semibold">{x.icon} {x.title}</p>
+          <p className="flex items-center gap-2 font-semibold"><Icon name={x.icon} size={16} className="text-muted" />{x.title}</p>
           <p className="mt-0.5 text-sm text-muted">{x.body}</p>
         </button>
       ))}
@@ -180,8 +181,8 @@ export function DayDetail({ date, today, day, connected, justSaved, checks, tz }
       </div>
       {(s.tags.length > 0 || productive || focus) && (
         <div className="mb-3 flex flex-wrap gap-1.5 text-xs">
-          {productive && <span className="rounded-full bg-surface px-2.5 py-1">⚡ {productive}</span>}
-          {focus && <span className="rounded-full bg-surface px-2.5 py-1">🎯 {focus}</span>}
+          {productive && <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2.5 py-1"><Icon name="productive" size={12} />{productive}</span>}
+          {focus && <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2.5 py-1"><Icon name="focus" size={12} />{focus}</span>}
           {s.tags.map((t) => (
             <Link key={t} href={`/calendar?month=${date.slice(0, 7)}&tag=${encodeURIComponent(t)}`} className="rounded-full border border-line px-2.5 py-1 text-muted">{t}</Link>
           ))}

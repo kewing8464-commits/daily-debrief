@@ -1,4 +1,5 @@
 'use client'
+import { Icon } from './Icon'
 import { useEffect, useState } from 'react'
 import { VibeCheckSheet } from './VibeCheckSheet'
 
@@ -27,11 +28,11 @@ export function VibeCheckButton({ variant }: { variant: 'fab' | 'sidebar' }) {
           onClick={() => setOpen(true)}
           className="fixed right-4 bottom-24 z-20 rounded-full bg-accent px-5 py-3 font-extrabold text-on-accent shadow-[0_6px_18px_rgba(0,0,0,0.45)] lg:hidden"
         >
-          ＋ Vibe check
+          <span className="flex items-center gap-1.5"><Icon name="plus" size={18} strokeWidth={2.2} />Vibe check</span>
         </button>
       ) : (
         <button onClick={() => setOpen(true)} className="mb-2 rounded-card border border-accent py-2 text-center font-semibold text-accent">
-          ＋ Vibe check <span className="text-xs opacity-60">N</span>
+          <span className="flex items-center justify-center gap-1.5"><Icon name="plus" size={16} strokeWidth={2.2} />Vibe check <span className="text-xs opacity-60">N</span></span>
         </button>
       )}
       {open && <VibeCheckSheet onClose={() => setOpen(false)} />}

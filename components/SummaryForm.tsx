@@ -67,10 +67,10 @@ export function SummaryForm({ value: s, onChange }: Props) {
         </Row>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Row label="Drinks 🍺">
+        <Row label="Drinks">
           <input className={field} inputMode="numeric" value={s.alcohol.drinks} onChange={(e) => set({ alcohol: { ...s.alcohol, drinks: num(e.target.value) ?? 0 } })} />
         </Row>
-        <Row label="Weed 🌿">
+        <Row label="Weed">
           <select className={field} value={s.cannabis.used ? 'yes' : 'no'} onChange={(e) => set({ cannabis: { ...s.cannabis, used: e.target.value === 'yes' } })}>
             <option value="no">No</option>
             <option value="yes">Yes</option>

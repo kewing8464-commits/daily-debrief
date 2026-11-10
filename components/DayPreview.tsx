@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import Link from 'next/link'
 import { scoreColor, scoreInk } from '@/lib/design'
 import type { CalDay } from '@/lib/journal-layers'
@@ -35,9 +36,9 @@ export function DayPreview({ day }: { day: CalDay }) {
       </div>
       {(productive || focus) && (
         <p className="mt-2 text-sm text-muted">
-          {productive && <>⚡ {productive}</>}
+          {productive && <span className="inline-flex items-center gap-1"><Icon name="productive" size={13} />{productive}</span>}
           {productive && focus && ' · '}
-          {focus && <>🎯 {focus}</>}
+          {focus && <span className="inline-flex items-center gap-1"><Icon name="focus" size={13} />{focus}</span>}
         </p>
       )}
       {s.happy && <p className="mt-2 text-sm"><span className="text-muted">Happy: </span>{s.happy}</p>}

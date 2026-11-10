@@ -93,7 +93,7 @@ export function ConnectAi() {
 
   return (
     <Card className="mb-3">
-      <p className="font-semibold">Connect your AI 🔌</p>
+      <p className="font-semibold">Connect your AI</p>
       <p className="mt-1 text-sm text-muted">
         Give Claude, ChatGPT, or another AI app read-only access to your saved debriefs, then ask it about your life.
       </p>

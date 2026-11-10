@@ -4,6 +4,7 @@ import { debriefDateFor } from '@/lib/dates'
 import { pauseUntil, pushSupport, type PauseOption } from '@/lib/reminders'
 import { createBrowserSupabase } from '@/lib/supabase/client'
 import { Card } from './Card'
+import { Icon } from './Icon'
 
 type Device = { reminder_on: boolean; followup_on: boolean }
 type Support = ReturnType<typeof pushSupport> | 'checking'
@@ -132,7 +133,7 @@ export function RemindersCard({ zone, time, pausedUntil }: { zone: string; time:
 
   return (
     <Card className="mb-3">
-      <p className="font-semibold">🔔 Reminders</p>
+      <p className="flex items-center gap-2 font-semibold"><Icon name="bell" size={17} className="text-muted" />Reminders</p>
       <p className="mt-0.5 text-sm text-muted">One nudge at {time || 'your debrief time'}, and one more an hour later if you haven&apos;t started. Never more.</p>
 
       {support === 'checking' && <p className="mt-3 text-sm text-muted">Checking this device…</p>}
@@ -141,7 +142,7 @@ export function RemindersCard({ zone, time, pausedUntil }: { zone: string; time:
         <div className="mt-3 rounded-card border border-line p-3 text-sm">
           <p className="font-semibold">On iPhone, reminders need the home screen app:</p>
           <ol className="mt-1 list-decimal space-y-0.5 pl-5 text-muted">
-            <li>In Safari, tap Share <span className="rounded border border-line px-1">⬆</span></li>
+            <li>In Safari, tap Share <Icon name="share" size={14} className="-mt-0.5" /></li>
             <li>Tap <b className="text-ink">Add to Home Screen</b></li>
             <li>Open Daily Debrief from the new icon, come back here, and turn reminders on</li>
           </ol>
@@ -175,12 +176,12 @@ export function RemindersCard({ zone, time, pausedUntil }: { zone: string; time:
         <div className="mt-3 border-t border-line pt-3">
           {isPaused ? (
             <div className="flex items-center justify-between">
-              <span className="text-sm">⏸ Paused through {pausedLabel}</span>
+              <span className="flex items-center gap-1.5 text-sm"><Icon name="pause" size={15} />Paused through {pausedLabel}</span>
               <button onClick={() => pause(null)} className="text-sm font-semibold text-accent">Resume</button>
             </div>
           ) : (
             <>
-              <p className="mb-1.5 text-sm">⏸ Pause reminders <span className="text-xs text-muted">(vacation, sick, busy week)</span></p>
+              <p className="mb-1.5 flex items-center gap-1.5 text-sm"><Icon name="pause" size={15} />Pause reminders <span className="text-xs text-muted">(vacation, sick, busy week)</span></p>
               <div className="grid grid-cols-3 gap-1.5 text-xs">
                 {([['tonight', 'Tonight'], ['3days', '3 days'], ['week', 'A week']] as const).map(([o, l]) => (
                   <button key={o} onClick={() => pause(o)} className="rounded-card border border-line py-2">{l}</button>

@@ -1,4 +1,5 @@
 'use client'
+import { Icon } from './Icon'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { VIBE_TAGS, type VibeCheck } from '@/lib/vibe-checks'
@@ -62,7 +63,8 @@ export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onCl
             disabled={recorder.status === 'transcribing'}
             className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${recorder.status === 'recording' ? 'border-accent bg-accent font-bold text-on-accent' : 'border-line'}`}
           >
-            {recorder.status === 'recording' ? '■ Stop' : recorder.status === 'transcribing' ? 'Getting your words…' : '🎙 Talk instead'}
+            <Icon name={recorder.status === 'recording' ? 'stop' : 'mic'} size={15} />
+            {recorder.status === 'recording' ? 'Stop' : recorder.status === 'transcribing' ? 'Getting your words…' : 'Talk instead'}
           </button>
           {recorder.status === 'recording' && <span className="text-xs text-muted">Listening… stops when you pause</span>}
         </div>
@@ -75,7 +77,7 @@ export function VibeCheckSheet({ editing, onClose }: { editing?: VibeCheck; onCl
               onClick={() => toggle(t.id)}
               className={`rounded-full border px-3 py-1.5 text-xs ${tags.includes(t.id) ? 'border-accent2 bg-accent2 font-bold text-on-accent' : 'border-line'}`}
             >
-              {t.label}
+              <span className="flex items-center gap-1"><Icon name={t.icon} size={13} />{t.label}</span>
             </button>
           ))}
         </div>

@@ -1,3 +1,4 @@
+import type { IconName } from '@/components/Icon'
 import { METRICS, trend, type Metric, type SavedDay } from '@/lib/connector/journal'
 
 // "Your recipe for a good day": which things in your own entries line up with better or
@@ -41,20 +42,20 @@ export function periodRange(period: Period, today: string, month?: string) {
 }
 
 export type Family = 'workout' | 'sleep' | 'drinks' | 'weed' | 'meetings' | 'person' | 'tag'
-export type Factor = { id: string; label: string; family: Family; has: (d: SavedDay) => boolean }
+export type Factor = { id: string; label: string; icon: IconName; family: Family; has: (d: SavedDay) => boolean }
 
 const hours = (d: SavedDay) => d.summary.sleep?.hours
 const drinks = (d: SavedDay) => d.summary.alcohol?.drinks ?? 0
 
 // The fixed factors, with how to say "you also ..." about each.
 const FIXED: (Factor & { also: string })[] = [
-  { id: 'workout', label: '🏋️ Worked out', family: 'workout', also: 'worked out', has: (d) => !!d.summary.workout?.did },
-  { id: 'sleep-7.5', label: '💤 Slept 7.5h or more', family: 'sleep', also: 'slept 7.5h or more', has: (d) => (hours(d) ?? 0) >= 7.5 },
-  { id: 'sleep-6', label: '💤 Slept under 6h', family: 'sleep', also: 'slept under 6h', has: (d) => typeof hours(d) === 'number' && hours(d)! < 6 },
-  { id: 'drinks-3', label: '🍺 3+ drinks', family: 'drinks', also: 'had 3+ drinks', has: (d) => drinks(d) >= 3 },
-  { id: 'drinks-0', label: '🍺 No drinks', family: 'drinks', also: 'had no drinks', has: (d) => drinks(d) === 0 },
-  { id: 'weed', label: '🌿 Weed', family: 'weed', also: 'had weed', has: (d) => !!d.summary.cannabis?.used },
-  { id: 'meetings-4', label: '💼 4+ meetings', family: 'meetings', also: 'had 4+ meetings', has: (d) => (d.summary.work?.meetings ?? 0) >= 4 },
+  { id: 'workout', label: 'Worked out', icon: 'workout', family: 'workout', also: 'worked out', has: (d) => !!d.summary.workout?.did },
+  { id: 'sleep-7.5', label: 'Slept 7.5h or more', icon: 'sleep', family: 'sleep', also: 'slept 7.5h or more', has: (d) => (hours(d) ?? 0) >= 7.5 },
+  { id: 'sleep-6', label: 'Slept under 6h', icon: 'sleep', family: 'sleep', also: 'slept under 6h', has: (d) => typeof hours(d) === 'number' && hours(d)! < 6 },
+  { id: 'drinks-3', label: '3+ drinks', icon: 'drinks', family: 'drinks', also: 'had 3+ drinks', has: (d) => drinks(d) >= 3 },
+  { id: 'drinks-0', label: 'No drinks', icon: 'drinks', family: 'drinks', also: 'had no drinks', has: (d) => drinks(d) === 0 },
+  { id: 'weed', label: 'Weed', icon: 'weed', family: 'weed', also: 'had weed', has: (d) => !!d.summary.cannabis?.used },
+  { id: 'meetings-4', label: '4+ meetings', icon: 'work', family: 'meetings', also: 'had 4+ meetings', has: (d) => (d.summary.work?.meetings ?? 0) >= 4 },
 ]
 
 /** Names on one day, deduped ignoring case ("Jake" and "jake" are one), keeping the first spelling. */
@@ -87,8 +88,8 @@ export function candidateFactors(days: SavedDay[]): Factor[] {
   const hasTag = (k: string) => (d: SavedDay) => (d.summary.tags ?? []).some((t) => t.trim().toLowerCase() === k)
   return [
     ...FIXED,
-    ...[...people].filter(([, v]) => v.count >= MIN_SIDE).map(([k, v]) => ({ id: `person:${k}`, label: `👤 Time with ${v.name}`, family: 'person' as const, has: hasPerson(k) })),
-    ...[...tags].filter(([, v]) => v.count >= MIN_SIDE).map(([k, v]) => ({ id: `tag:${k}`, label: `🏷 ${v.name}`, family: 'tag' as const, has: hasTag(k) })),
+    ...[...people].filter(([, v]) => v.count >= MIN_SIDE).map(([k, v]) => ({ id: `person:${k}`, label: `Time with ${v.name}`, icon: 'people' as const, family: 'person' as const, has: hasPerson(k) })),
+    ...[...tags].filter(([, v]) => v.count >= MIN_SIDE).map(([k, v]) => ({ id: `tag:${k}`, label: v.name.charAt(0).toUpperCase() + v.name.slice(1), icon: 'tag' as const, family: 'tag' as const, has: hasTag(k) })),
   ]
 }
 
@@ -101,7 +102,7 @@ function split(days: SavedDay[], f: Factor) {
   return { withDays, withoutDays }
 }
 
-export type RecipeRow = { id: string; label: string; diff: number; withAvg: number; withoutAvg: number; withDays: number; withoutDays: number }
+export type RecipeRow = { id: string; label: string; icon: IconName; diff: number; withAvg: number; withoutAvg: number; withDays: number; withoutDays: number }
 
 /** The 5 factors that move the score most, vs the average of all days in the period. */
 export function recipe(days: SavedDay[]): RecipeRow[] {
@@ -114,6 +115,7 @@ export function recipe(days: SavedDay[]): RecipeRow[] {
     .map(({ f, withDays, withoutDays }) => ({
       id: f.id,
       label: f.label,
+      icon: f.icon,
       // From the rounded averages, so the numbers on screen subtract cleanly.
       diff: round1(round1(mean(withDays)!) - all),
       withAvg: round1(mean(withDays)!),
@@ -224,12 +226,12 @@ export function peopleScores(days: SavedDay[]): { name: string; days: number; av
 }
 
 export const TREND_METRICS: { id: Metric; label: string }[] = [
-  { id: 'score', label: '😊 Score' },
-  { id: 'sleep_hours', label: '💤 Sleep' },
-  { id: 'drinks', label: '🍺 Drinks' },
-  { id: 'worked_out', label: '🏋️ Workouts' },
-  { id: 'productive', label: '⚡ Productive' },
-  { id: 'focus', label: '🎯 Focus' },
+  { id: 'score', label: 'Score' },
+  { id: 'sleep_hours', label: 'Sleep' },
+  { id: 'drinks', label: 'Drinks' },
+  { id: 'worked_out', label: 'Workouts' },
+  { id: 'productive', label: 'Productive' },
+  { id: 'focus', label: 'Focus' },
 ]
 export const isMetric = (v: string): v is Metric => (METRICS as readonly string[]).includes(v)
 

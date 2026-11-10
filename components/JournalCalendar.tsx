@@ -1,4 +1,5 @@
 'use client'
+import { Icon } from './Icon'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -128,7 +129,7 @@ export function JournalCalendar({ title, today, cells, days, prevHref, nextHref,
               title={`Shortcut: ${i + 1}`}
               className={`shrink-0 rounded-full border px-3 py-1.5 ${layer === l.id ? 'border-accent bg-accent font-bold text-on-accent' : 'border-line'}`}
             >
-              {l.label}
+              <span className="flex items-center gap-1.5"><Icon name={l.icon} size={14} />{l.label}</span>
             </button>
           ))}
         </div>
@@ -190,7 +191,7 @@ export function JournalCalendar({ title, today, cells, days, prevHref, nextHref,
               >
                 <span className="text-[9px] opacity-70">{num}</span>
                 <span className="text-center text-sm leading-none font-extrabold lg:text-lg">{d.score}</span>
-                <span className="text-center text-[9px] leading-tight">{dayIcons(d)}</span>
+                <span className="flex justify-center gap-0.5 opacity-85">{dayIcons(d).map((n) => <Icon key={n} name={n} size={10} strokeWidth={2} />)}</span>
                 <span className="hidden truncate text-[9px] opacity-80 lg:block">{d.summary.oneLine}</span>
               </button>
             )
@@ -199,7 +200,7 @@ export function JournalCalendar({ title, today, cells, days, prevHref, nextHref,
 
         <Link href="/insights" className="mt-4 flex items-center justify-between gap-3 rounded-card border border-line bg-surface p-3.5">
           <span>
-            <span className="block font-semibold">💡 This month</span>
+            <span className="flex items-center gap-1.5 font-semibold"><Icon name="bulb" size={16} className="text-accent" />This month</span>
             <span className="text-sm text-muted">{insight}</span>
           </span>
           <span className="text-accent">›</span>

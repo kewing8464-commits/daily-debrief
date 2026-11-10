@@ -40,7 +40,7 @@ test('candidate factors merge casing and need 4+ days for people and tags', () =
 test('the recipe ranks the biggest differences, needing 4+ days on each side', () => {
   const r = recipe(days)
   expect(r).toHaveLength(5)
-  expect(r[0]).toMatchObject({ id: 'person:jake', label: '👤 Time with Jake', diff: 3.4, withDays: 5, withoutDays: 15 })
+  expect(r[0]).toMatchObject({ id: 'person:jake', label: 'Time with Jake', icon: 'people', diff: 3.4, withDays: 5, withoutDays: 15 })
   for (const f of r) {
     expect(f.withDays).toBeGreaterThanOrEqual(4)
     expect(f.withoutDays).toBeGreaterThanOrEqual(4)

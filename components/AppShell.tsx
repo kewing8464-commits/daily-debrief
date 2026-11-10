@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { TABS, TabBar, type TabId } from './TabBar'
@@ -11,14 +12,14 @@ export function AppShell({ active, wide = false, children }: { active: TabId; wi
   return (
     <div className="flex flex-1">
       <aside className="glass sticky top-0 hidden h-dvh w-[210px] shrink-0 flex-col gap-1 border-r border-black/10 px-3 py-5 lg:flex">
-        <Link href="/" className="mb-5 px-3 font-serif text-lg">🌙 Daily Debrief</Link>
+        <Link href="/" className="mb-6 flex items-center gap-2 px-3 font-serif text-lg font-semibold text-heading"><Icon name="moon" size={20} className="text-accent" />Daily Debrief</Link>
         {TABS.map((t) => (
           <Link
             key={t.id}
             href={t.href}
             className={`rounded-card px-3 py-2 text-[15px] ${t.id === active ? 'bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] font-semibold text-accent' : 'font-medium text-glass-ink hover:bg-[color-mix(in_srgb,var(--surface)_40%,transparent)]'}`}
           >
-            {t.icon} {t.label}
+            <span className="flex items-center gap-2.5"><Icon name={t.icon} size={19} />{t.label}</span>
           </Link>
         ))}
         <div className="mt-auto" />

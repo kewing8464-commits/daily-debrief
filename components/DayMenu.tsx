@@ -1,4 +1,5 @@
 'use client'
+import { Icon } from './Icon'
 import { useState } from 'react'
 
 type Props = {
@@ -43,12 +44,12 @@ export function DayMenu({ dateLabel, connected, question, onEdit, onAdd, onDownl
           </div>
         ) : (
           <>
-            <button className={item} onClick={onEdit}>✎ Edit this day</button>
-            <button className={item} onClick={onAdd}>＋ Add something to this day</button>
-            <button className={item} onClick={onEdit}>🔄 Change the score</button>
-            {connected && <button className={item} onClick={copy}>🤖 {copied ? 'Copied ✓ Paste it into your AI' : 'Copy a question for your AI'}</button>}
-            <button className={item} onClick={onDownload}>⬇ Download this day</button>
-            <button className={`${item} border-b-0 text-[#e89f88]`} onClick={() => setConfirming(true)}>🗑 Delete this day</button>
+            <button className={item} onClick={onEdit}><span className="flex items-center gap-2.5"><Icon name="edit" size={17} />Edit this day</span></button>
+            <button className={item} onClick={onAdd}><span className="flex items-center gap-2.5"><Icon name="plus" size={17} />Add something to this day</span></button>
+            <button className={item} onClick={onEdit}><span className="flex items-center gap-2.5"><Icon name="refresh" size={17} />Change the score</span></button>
+            {connected && <button className={item} onClick={copy}><span className="flex items-center gap-2.5"><Icon name="chat" size={17} />{copied ? 'Copied. Paste it into your AI' : 'Copy a question for your AI'}</span></button>}
+            <button className={item} onClick={onDownload}><span className="flex items-center gap-2.5"><Icon name="download" size={17} />Download this day</span></button>
+            <button className={`${item} border-b-0 text-[#e89f88]`} onClick={() => setConfirming(true)}><span className="flex items-center gap-2.5"><Icon name="trash" size={17} />Delete this day</span></button>
           </>
         )}
       </div>

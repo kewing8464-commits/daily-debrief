@@ -31,3 +31,10 @@ test('drink kind is only shown when it adds something', () => {
   expect(filledSections({ ...emptySummary(6), alcohol: { drinks: 2, kind: 'beer' } }).find((s) => s.key === 'drinks')?.body).toBe('2 beers')
   expect(filledSections({ ...emptySummary(6), alcohol: { drinks: 1, kind: 'IPA' } }).find((s) => s.key === 'drinks')?.body).toBe('1 beer (IPA)')
 })
+
+test('no emoji: sections carry an icon name, people say how it felt in words', () => {
+  const s = { ...emptySummary(8), people: [{ name: 'Jake', feeling: 'positive' as const }, { name: 'Boss', feeling: 'negative' as const }] }
+  const people = filledSections(s).find((x) => x.key === 'people')!
+  expect(people.icon).toBe('people')
+  expect(people.body).toBe('Jake (good), Boss (tense)')
+})

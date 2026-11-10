@@ -1,4 +1,5 @@
 'use client'
+import { Icon } from './Icon'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -268,7 +269,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
       <div className="mb-3 flex rounded-card bg-[color-mix(in_srgb,var(--text)_8%,transparent)] p-1 text-sm font-bold">
         {(['talk', 'type'] as const).map((m) => (
           <button key={m} onClick={() => pickMode(m)} className={`flex-1 rounded-[5px] py-1.5 ${mode === m ? 'bg-surface text-ink' : 'text-muted'}`}>
-            {m === 'talk' ? '🎙 Talk' : '⌨️ Type'}
+            <span className="flex items-center justify-center gap-1.5"><Icon name={m === 'talk' ? 'mic' : 'keyboard'} size={15} />{m === 'talk' ? 'Talk' : 'Type'}</span>
           </button>
         ))}
       </div>
@@ -292,7 +293,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
         <span className="flex items-center gap-3">
           {mode === 'talk' && (
             <button onClick={speaker.toggle} aria-label={speaker.on ? 'Mute the questions' : 'Read the questions out loud'} className="text-base">
-              {speaker.on ? '🔊' : '🔇'}
+              <Icon name={speaker.on ? 'volume' : 'volumeOff'} size={18} />
             </button>
           )}
           <Link href="/" className="px-1 text-base">✕</Link>
@@ -310,9 +311,9 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
             <ScorePicker value={score} onPick={(n) => (ratingsOn ? setScore(n) : finishWithScore(n))} />
             {ratingsOn && (
               <>
-                <p className="mt-5 mb-2 font-serif text-lg">⚡ {PRODUCTIVE_QUESTION}</p>
+                <p className="mt-5 mb-2 flex items-center gap-2 font-serif text-lg"><Icon name="productive" size={17} className="text-muted" />{PRODUCTIVE_QUESTION}</p>
                 <RatingPicker labels={PRODUCTIVE_LABELS} value={productive} onPick={setProductive} />
-                <p className="mt-4 mb-2 font-serif text-lg">🎯 {FOCUS_QUESTION}</p>
+                <p className="mt-4 mb-2 flex items-center gap-2 font-serif text-lg"><Icon name="focus" size={17} className="text-muted" />{FOCUS_QUESTION}</p>
                 <RatingPicker labels={FOCUS_LABELS} value={focus} onPick={setFocus} />
                 <p className="mt-2 text-xs text-muted">Both optional.</p>
                 <button
@@ -362,7 +363,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
               aria-label={recorder.status === 'recording' ? 'Stop recording' : 'Start talking'}
               className={`flex h-[72px] w-[72px] items-center justify-center rounded-full bg-accent text-2xl text-on-accent disabled:opacity-50 ${recorder.status === 'recording' ? 'shadow-[0_0_0_10px_rgba(224,137,95,0.25)]' : ''}`}
             >
-              {recorder.status === 'recording' ? '■' : '🎙'}
+              <Icon name={recorder.status === 'recording' ? 'stop' : 'mic'} size={30} strokeWidth={2} />
             </button>
             {!saved ? <button onClick={() => setPhase('score')} disabled={busy || recorder.status !== 'idle'} className="w-20 text-right text-sm text-muted">I&apos;m done</button> : <span className="w-20" />}
           </div>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/AppShell'
 import { Card } from '@/components/Card'
+import { Icon } from '@/components/Icon'
 import { PageHeader } from '@/components/PageHeader'
 import { CopyText } from '@/components/CopyText'
 import { TrendChart } from '@/components/TrendChart'
@@ -96,7 +97,7 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
       <AppShell active="insights">
         <PageHeader title="Insights" />
         <Card className="mb-5 text-center">
-          <p className="text-3xl">🌱</p>
+          <Icon name="sprout" size={34} className="mx-auto text-accent2" />
           <p className="mt-1 font-serif text-xl">{COPY.stillLearning(progress.remaining)}</p>
           <p className="mt-1 text-sm text-muted">{all.length} of {PATTERN_THRESHOLD} debriefs. Your recipe for a good day shows up once there&apos;s enough to go on.</p>
           <div className="mt-3 h-2 rounded-full bg-[color-mix(in_srgb,var(--text)_12%,transparent)]">
@@ -136,7 +137,7 @@ export default async function InsightsPage({ searchParams }: PageProps<'/insight
                 return (
                   <Link key={r.id} href={`/insights/factor/${encodeURIComponent(r.id)}?period=${period}${period === 'month' ? `&month=${ym}` : ''}`} className="block border-t border-line py-2.5 first:border-t-0">
                     <div className="flex justify-between">
-                      <span>{r.label}</span>
+                      <span className="flex items-center gap-2"><Icon name={r.icon} size={16} className="text-muted" />{r.label}</span>
                       <b className={pos ? 'text-accent2' : 'text-accent'}>{pos ? '+' : '−'}{Math.abs(r.diff)}</b>
                     </div>
                     <div className="mt-1.5 flex items-center gap-2">

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { streakLabel } from '@/lib/copy'
 import { scoreColor } from '@/lib/design'
 import { Card } from './Card'
+import { Icon } from './Icon'
 
 const WEEKDAY = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
@@ -9,12 +10,15 @@ type Props = { bars: { date: string; score: number | null }[]; today: string; st
 
 /** This week at a glance: 7 bars ending today (ringed), gaps dashed, each bar opens its day. */
 export function WeekCard({ bars, today, streak, sleepAvg, firstTime }: Props) {
-  const header = [streakLabel(streak), sleepAvg !== null ? `💤 ${sleepAvg}h avg` : null].filter(Boolean).join(' · ')
+  const streakText = streakLabel(streak)
   return (
     <Card className="mb-3">
       <div className="mb-2 flex justify-between text-xs text-muted">
         <span className="font-semibold text-ink">This week</span>
-        <span>{header}</span>
+        <span className="flex items-center gap-3">
+          {streakText && <span className="flex items-center gap-1"><Icon name="flame" size={13} />{streakText}</span>}
+          {sleepAvg !== null && <span className="flex items-center gap-1"><Icon name="sleep" size={13} />{sleepAvg}h avg</span>}
+        </span>
       </div>
       {firstTime ? (
         <p className="py-4 text-center text-sm text-muted">{firstTime}</p>

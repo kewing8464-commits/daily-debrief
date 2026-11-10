@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/AppShell'
 import { Card } from '@/components/Card'
+import { Icon } from '@/components/Icon'
 import { PageHeader } from '@/components/PageHeader'
 import { ClearBadge } from '@/components/ClearBadge'
 import { VibeCheckButton } from '@/components/VibeCheckButton'
@@ -76,12 +77,12 @@ export default async function Today() {
       </div>
       <div className="mt-3 flex gap-2">
         <Link href={`/day/${today}`} className="flex-1 rounded-card border border-line py-2.5 text-center text-sm font-semibold">View day</Link>
-        <Link href={`/debrief?date=${today}`} className="flex-1 rounded-card border border-line py-2.5 text-center text-sm font-semibold">＋ Add something</Link>
+        <Link href={`/debrief?date=${today}`} className="flex-1 rounded-card border border-line py-2.5 text-center text-sm font-semibold"><span className="flex items-center justify-center gap-1.5"><Icon name="plus" size={15} />Add something</span></Link>
       </div>
     </Card>
   ) : start === 'prominent' ? (
     <Card className="mb-3 border-accent">
-      <p className="font-serif text-xl">Vibe check time 🌙</p>
+      <p className="flex items-center gap-2 font-serif text-xl"><Icon name="moon" size={20} className="text-accent" />Vibe check time</p>
       <p className="mb-3 text-sm text-muted">How&apos;d today hit? {todayChecks.length ? `You noted ${todayChecks.length} ${todayChecks.length === 1 ? 'thing' : 'things'} already, so it'll be quick.` : 'About 5 minutes, talk or type.'}</p>
       <Link href={`/debrief?date=${today}`} className="block rounded-card bg-accent py-3 text-center font-bold text-on-accent">Start tonight&apos;s debrief</Link>
     </Card>
@@ -95,7 +96,7 @@ export default async function Today() {
         <Link href={`/debrief?date=${today}`} className="rounded-card bg-accent px-3 py-2 text-sm font-bold text-on-accent">Start now</Link>
       ) : (
         <span className="flex flex-col items-end gap-1">
-          <span className="text-xl text-muted">🌙</span>
+          <Icon name="moon" size={22} className="text-muted" />
           {start === 'early' && <Link href={`/debrief?date=${today}`} className="text-xs text-muted underline">Start early</Link>}
         </span>
       )}
@@ -113,7 +114,7 @@ export default async function Today() {
   )
   const streakCard = todayRow && stats.streak > 0 && (
     <Card className="mb-3 flex justify-between">
-      <span className="font-semibold">{streakLabel(stats.streak)}</span>
+      <span className="flex items-center gap-2 font-semibold"><Icon name="flame" size={17} className="text-accent" />{streakLabel(stats.streak)}</span>
       <span className="text-sm text-muted">best: {best}</span>
     </Card>
   )

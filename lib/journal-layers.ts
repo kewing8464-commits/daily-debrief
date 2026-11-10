@@ -1,3 +1,4 @@
+import type { IconName } from '@/components/Icon'
 import { compareDays, type SavedDay } from '@/lib/connector/journal'
 import { scoreColor, scoreInk } from '@/lib/design'
 import { PATTERN_THRESHOLD } from '@/lib/insights'
@@ -6,13 +7,13 @@ import type { DaySummary } from '@/lib/summary'
 // The Journal calendar can be colored by one thing at a time.
 
 export type Layer = 'mood' | 'productive' | 'focus' | 'sleep' | 'drinks' | 'gym'
-export const LAYERS: { id: Layer; label: string }[] = [
-  { id: 'mood', label: '😊 Mood' },
-  { id: 'productive', label: '⚡ Productive' },
-  { id: 'focus', label: '🎯 Focus' },
-  { id: 'sleep', label: '💤 Sleep' },
-  { id: 'drinks', label: '🍺 Drinks' },
-  { id: 'gym', label: '🏋️ Gym' },
+export const LAYERS: { id: Layer; label: string; icon: IconName }[] = [
+  { id: 'mood', label: 'Mood', icon: 'mood' },
+  { id: 'productive', label: 'Productive', icon: 'productive' },
+  { id: 'focus', label: 'Focus', icon: 'focus' },
+  { id: 'sleep', label: 'Sleep', icon: 'sleep' },
+  { id: 'drinks', label: 'Drinks', icon: 'drinks' },
+  { id: 'gym', label: 'Gym', icon: 'workout' },
 ]
 
 export type CalDay = { day_date: string; score: number; summary: DaySummary; productive: number | null; focus: number | null }
@@ -88,8 +89,9 @@ export function monthStats(days: CalDay[]) {
 /** Tapping a month stat switches the calendar to the matching layer. */
 export const statLayer = { avgScore: 'mood', avgSleep: 'sleep', workouts: 'gym', beers: 'drinks' } as const satisfies Record<string, Layer>
 
-export function dayIcons(d: CalDay): string {
-  return (workedOut(d) ? '🏋️' : '') + (drinksOf(d) >= 3 ? '🍺' : '')
+/** Small markers on a day: worked out, 3+ drinks. */
+export function dayIcons(d: CalDay): ('workout' | 'drinks')[] {
+  return [...(workedOut(d) ? ['workout' as const] : []), ...(drinksOf(d) >= 3 ? ['drinks' as const] : [])]
 }
 
 /** One plain sentence about this month's clearest difference between 8+ days and rough days. */
