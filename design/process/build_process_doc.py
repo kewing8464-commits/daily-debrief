@@ -176,6 +176,7 @@ table(['When', 'Milestone'], [
     ['Oct 27, 2026', 'Milestone 1 live: typed nightly debrief, calendar, day view (64 automated tests)'],
     ['Oct 27, 2026', 'Milestone 2 live: "Connect your AI" connector for Claude and ChatGPT (93 tests)'],
     ['Oct 27 to 28, 2026', 'Full design spec, screen by screen, for phone and computer'],
+    ['Nov 9, 2026', 'Teacher approves Daily Debrief as the class project; Milestone 3 (new design) built and tested'],
     ['Next', 'Build the redesigned screens, voice debriefs, reminders, food and weight tracking'],
 ], [1.7, 4.8])
 page_break()
@@ -311,6 +312,33 @@ bullets([
 ])
 page_break()
 
+doc.add_heading('8. Building v2: from mockups to a working app', 1)
+p('With the design approved, I had the AI turn the spec into a build plan: 8 small tasks, each with the '
+  'exact files, function names and tests decided up front. Then it built them one at a time, test first: '
+  'write a test that fails, write the code, watch the test pass. By the end there were 117 automated tests.')
+p('This also became my class submission. My teacher approved turning in Daily Debrief as a live web app, '
+  'so I set up a demo account with a month of realistic sample data she can log into and explore.')
+doc.add_heading('8.1 Mockup vs. the real thing', 2)
+image_row(['spec-part1-0.png', 'm3-journal-phone.png'], 2.3, 'Left: the Journal mockup. Right: the real Journal on a phone.')
+image('m3-journal-desk.png', 6.5, 'The real Journal on a laptop: color calendar with layers, and a side panel for the selected day.')
+page_break()
+image('m3-today-desk.png', 6.5, 'Today on a laptop: sidebar, tonight\'s debrief, this week, and a pattern from the journal.')
+image('m3-day-desk.png', 6.5, 'A single day on a laptop: every section at a glance, with the night\'s conversation beside it.')
+page_break()
+image_row(['m3-today-phone.png', 'm3-ratings.png', 'm3-day-phone.png'], 1.95, 'On a phone: Today, the new productive and focus ratings, and a saved day.')
+doc.add_heading('8.2 Testing it like a user', 2)
+p('After the code passed its tests, the AI drove a real browser at phone and laptop sizes and went through '
+  'every screen: switching calendar layers, opening days, doing a full debrief "from memory," rating it, '
+  'saving, and deleting it. That caught things tests could not:')
+bullets([
+    ('Stretched cards on a laptop. ', 'The day\'s sections grew tall to match the conversation column. Fixed with one layout rule.'),
+    ('An empty AI summary. ', 'A test day saved with no details. The cause was a placeholder value left in my local settings file, '
+     'not the app itself, but it would have been easy to miss without trying the real flow.'),
+    ('Repeated words. ', '"2 beers (beer)" became "2 beers", with a test so it stays fixed.'),
+])
+p('Finally, a separate AI reviewer read the whole change with fresh eyes before it went live.')
+page_break()
+
 # ---------------------------------------------------------------- judgment + reflections
 doc.add_heading('8. Ideas I parked on purpose', 1)
 bullets([
@@ -332,7 +360,7 @@ bullets([
 
 doc.add_heading('10. What is next', 1)
 bullets([
-    'Turn the finished design into a written spec and build plan, then build it',
+    'Fill in Insights: "Your recipe for a good day" with real patterns',
     'Voice debriefs (talk instead of type)',
     'Nightly reminders on iPhone',
     'Food and weight tracking, then food insights',
