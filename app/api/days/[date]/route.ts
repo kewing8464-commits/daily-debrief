@@ -57,3 +57,14 @@ export async function PUT(req: Request, ctx: RouteContext<'/api/days/[date]'>) {
   if (error) return Response.json({ error: error.message }, { status: 500 })
   return Response.json(data)
 }
+
+/** Delete a day for good (the person confirmed in the day menu). */
+export async function DELETE(_req: Request, ctx: RouteContext<'/api/days/[date]'>) {
+  const { date } = await ctx.params
+  if (!DATE.test(date)) return Response.json({ error: 'Bad date' }, { status: 400 })
+  const { supabase, user } = await getUser()
+  if (!user) return Response.json({ error: 'Not signed in' }, { status: 401 })
+  const { error } = await supabase.from('days').delete().eq('user_id', user.id).eq('day_date', date)
+  if (error) return Response.json({ error: 'Could not delete that day. Try again.' }, { status: 500 })
+  return Response.json({ deleted: true })
+}
