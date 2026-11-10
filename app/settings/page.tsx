@@ -13,17 +13,19 @@ export default function SettingsPage() {
   const [zone, setZone] = useState('')
   const [deviceZone, setDeviceZone] = useState('')
   const [msg, setMsg] = useState('')
+  const [ratingsOn, setRatingsOn] = useState(true)
 
   useEffect(() => {
     const supabase = createBrowserSupabase()
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return router.replace('/login')
-      const { data: p } = await supabase.from('profiles').select('name, debrief_time, timezone').eq('id', data.user.id).single()
+      const { data: p } = await supabase.from('profiles').select('*').eq('id', data.user.id).single()
       setDeviceZone(Intl.DateTimeFormat().resolvedOptions().timeZone)
       if (p) {
         setName(p.name)
         setZone(p.timezone)
         setTime(String(p.debrief_time).slice(0, 5))
+        setRatingsOn(p.ratings_on ?? true)
       }
     })
   }, [router])
@@ -34,6 +36,17 @@ export default function SettingsPage() {
     const { data } = await supabase.auth.getUser()
     if (!data.user) return
     const { error } = await supabase.from('profiles').update({ debrief_time: value }).eq('id', data.user.id)
+    setMsg(error ? 'Could not save, try again.' : 'Saved ✓')
+  }
+
+  async function toggleRatings() {
+    const value = !ratingsOn
+    setRatingsOn(value)
+    const supabase = createBrowserSupabase()
+    const { data } = await supabase.auth.getUser()
+    if (!data.user) return
+    const { error } = await supabase.from('profiles').update({ ratings_on: value }).eq('id', data.user.id)
+    if (error) setRatingsOn(!value)
     setMsg(error ? 'Could not save, try again.' : 'Saved ✓')
   }
 
@@ -62,6 +75,15 @@ export default function SettingsPage() {
           </span>
           <input type="time" value={time} onChange={(e) => saveTime(e.target.value)} className="rounded-card border border-line bg-bg px-2 py-2" />
         </label>
+        <button onClick={toggleRatings} className="mt-3 flex w-full items-center justify-between gap-3 border-t border-line pt-3 text-left">
+          <span>
+            Productive + focus ratings
+            <span className="block text-xs text-muted">Two optional taps after your score</span>
+          </span>
+          <span className={`relative h-6 w-10 shrink-0 rounded-full ${ratingsOn ? 'bg-accent2' : 'bg-line'}`} role="switch" aria-checked={ratingsOn}>
+            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${ratingsOn ? 'right-0.5' : 'left-0.5'}`} />
+          </span>
+        </button>
         {msg && <p className="mt-2 text-xs text-accent2">{msg}</p>}
       </Card>
       <Card className="mb-3">
