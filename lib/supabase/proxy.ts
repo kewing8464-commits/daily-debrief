@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/login', '/manifest.webmanifest', '/icons']
+const PUBLIC_PATHS = ['/login', '/manifest.webmanifest', '/icons', '/sw.js']
 
 /** Refresh the session cookie, then send people where they belong:
  *  no session -> /login, session but no profile -> /setup. */

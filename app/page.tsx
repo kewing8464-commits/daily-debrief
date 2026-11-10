@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AppShell } from '@/components/AppShell'
 import { Card } from '@/components/Card'
+import { ClearBadge } from '@/components/ClearBadge'
 import { VibeCheckButton } from '@/components/VibeCheckButton'
 import { VibeInline } from '@/components/VibeInline'
 import { VibeTimeline } from '@/components/VibeTimeline'
@@ -64,6 +65,7 @@ export default async function Today() {
 
   const tonight = todayRow ? (
     <Card className="mb-3">
+      <ClearBadge />
       <div className="flex items-center gap-3">
         <ScoreCircle score={todayRow.score!} />
         <div>

@@ -255,6 +255,7 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
       return setPhase('review')
     }
     writeStorage(null)
+    ;(navigator as Navigator & { clearAppBadge?: () => Promise<void> }).clearAppBadge?.().catch(() => {})
     router.replace(`/day/${date}?saved=1`)
     router.refresh()
   }

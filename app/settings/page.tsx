@@ -3,8 +3,10 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/Card'
 import { ConnectAi } from '@/components/ConnectAi'
+import { RemindersCard } from '@/components/RemindersCard'
 import { AppShell } from '@/components/AppShell'
 import { createBrowserSupabase } from '@/lib/supabase/client'
+import { prettyTime } from '@/lib/today'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -14,6 +16,8 @@ export default function SettingsPage() {
   const [deviceZone, setDeviceZone] = useState('')
   const [msg, setMsg] = useState('')
   const [ratingsOn, setRatingsOn] = useState(true)
+  const [pausedUntil, setPausedUntil] = useState<string | null>(null)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const supabase = createBrowserSupabase()
@@ -26,7 +30,9 @@ export default function SettingsPage() {
         setZone(p.timezone)
         setTime(String(p.debrief_time).slice(0, 5))
         setRatingsOn(p.ratings_on ?? true)
+        setPausedUntil(p.reminders_paused_until ?? null)
       }
+      setLoaded(true)
     })
   }, [router])
 
@@ -95,6 +101,7 @@ export default function SettingsPage() {
           </button>
         )}
       </Card>
+      {loaded && <RemindersCard zone={zone} time={prettyTime(time || '21:30')} pausedUntil={pausedUntil} />}
       <ConnectAi />
       <Card className="mb-3">
         <a href="/api/export" className="block font-semibold text-accent">Download my data</a>
