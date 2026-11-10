@@ -374,6 +374,21 @@ bullets([
 ])
 page_break()
 
+doc.add_heading('11. Talk mode: debrief out loud', 1)
+p('The original idea was to talk about my day in bed, not type. Talk mode records each answer in the browser, '
+  'sends it to a free speech-to-text model (Whisper on Groq), and drops the words in as my answer. The AI reads '
+  'its questions out loud with the phone\'s own voice, and there is a mute button for when someone is asleep.')
+image_row(['talk.png'], 2.4, 'Talk mode: one big mic button, a live waveform, Skip and I\'m done.')
+bullets([
+    ('Hands-off: ', 'it stops recording by itself after about 2 seconds of quiet, but never cuts you off before you start talking.'),
+    ('Tested with a real voice: ', 'I had my Mac speak a sentence into an audio file in the iPhone format and ran it through '
+     'the same code. Whisper got every word.'),
+    ('Fails gracefully: ', 'if the microphone is blocked, the app says how to fix it and switches to typing. '
+     'Whisper\'s habit of "hearing" "Thank you" in silence is filtered out.'),
+    ('Private: ', 'recordings go straight to speech-to-text and are never stored.'),
+])
+page_break()
+
 # ---------------------------------------------------------------- judgment + reflections
 doc.add_heading('8. Ideas I parked on purpose', 1)
 bullets([
