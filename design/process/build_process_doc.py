@@ -389,6 +389,20 @@ bullets([
 ])
 page_break()
 
+doc.add_heading('12. Reminders: one nudge a night', 1)
+p('A once-a-day app only works if it reminds you, but nagging is the fastest way to get deleted. The rule from the '
+  'design: one reminder at your debrief time, one follow-up an hour later only if you haven\'t started, then nothing.')
+bullets([
+    ('How it works: ', 'every 15 minutes a scheduled job inside the database works out who is due, in each person\'s own '
+     'time zone, and hands that list to the app, which sends the notifications. Tapping one opens straight into the debrief.'),
+    ('Still free: ', 'it uses the database\'s built-in scheduler and standard web push, with no paid notification service.'),
+    ('Private: ', 'notifications never mention drinks, weed, or what you wrote. The list of devices is locked so only its owner '
+     'can see it, and a secret stops anyone else from triggering reminders.'),
+    ('Proven with a test user: ', 'a script checks that the reminder goes out at 9:31 (not 9:20), never twice, the follow-up '
+     'comes at 10:35, and nothing is sent after you have debriefed or while reminders are paused.'),
+])
+page_break()
+
 # ---------------------------------------------------------------- judgment + reflections
 doc.add_heading('8. Ideas I parked on purpose', 1)
 bullets([
