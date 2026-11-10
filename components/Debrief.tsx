@@ -145,6 +145,8 @@ export function Debrief({ requestedDate, ratingsOn = true }: { requestedDate?: s
             s = startConversation()
           }
         }
+        // A draft with no question in it (corrupt or very old) starts fresh instead of getting stuck.
+        if (!s.turns.some((t) => t.role === 'assistant')) s = startConversation()
         setState(s)
         const lastQ = [...s.turns].reverse().find((t) => t.role === 'assistant')!
         const topic = TOPICS.find((t) => t.id === lastQ.topic)

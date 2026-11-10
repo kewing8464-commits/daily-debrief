@@ -15,7 +15,8 @@ async function handle(request: Request, ctx: RouteContext<'/api/mcp/[token]'>) {
   if (!profile) return unknown()
   const handler = createMcpHandler(
     (server) => registerJournalTools(server, { ...source, profile: async () => profile }, () => new Date()),
-    { serverInfo: { name: 'daily-debrief', version: '1.0.0' } },
+    // maxSubscriptions 0: AI apps only call tools here; don't hold a streaming connection open until the 300s timeout.
+    { serverInfo: { name: 'daily-debrief', version: '1.0.0' }, maxSubscriptions: 0 },
   )
   return handler(request)
 }
