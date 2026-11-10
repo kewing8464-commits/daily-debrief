@@ -102,7 +102,7 @@ export function registerJournalTools(server: McpServer, source: JournalSource, n
 
   server.registerTool('get_trends', {
     title: 'Trend over time',
-    description: 'Day-by-day values of one measure with its average, min and max. Measures: score (1-10), sleep_hours, drinks, workout_minutes, worked_out (1 or 0), cannabis (1 or 0). Days without a value are left out.',
+    description: 'Day-by-day values of one measure with its average, min and max. Measures: score (1-10), sleep_hours, drinks, workout_minutes, worked_out (1 or 0), cannabis (1 or 0), productive (1-4: not, a bit, solid, very), focus (1-4: scattered, distracted, steady, locked in). Days without a value are left out.',
     inputSchema: z.object({ metric: z.enum(METRICS).describe('Which measure'), ...rangeArgs }),
     annotations: readOnly,
   }, async ({ metric, ...args }) => {

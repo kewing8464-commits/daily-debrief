@@ -1,23 +1,10 @@
-import { z } from 'zod'
 import { saveConflict } from '@/lib/days'
-import { TurnSchema } from '@/lib/schemas'
-import { DaySummarySchema } from '@/lib/summary'
+import { DayPutSchema } from '@/lib/schemas'
 import { getUser } from '@/lib/supabase/server'
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 
-const Body = z.object({
-  transcript: z.array(TurnSchema).max(400),
-  summary: DaySummarySchema.nullable(),
-  score: z.number().int().min(1).max(10).nullable(),
-  mode: z.enum(['type', 'talk']),
-  durationSec: z.number().int().min(0).max(24 * 3600),
-  timezone: z.string().min(1).max(64),
-  status: z.enum(['draft', 'saved']),
-  // The updated_at of the day this screen loaded (null if there was none). Guards against
-  // overwriting a day saved from another screen since then.
-  expectedUpdatedAt: z.string().nullable().default(null),
-})
+const Body = DayPutSchema
 
 export async function GET(_req: Request, ctx: RouteContext<'/api/days/[date]'>) {
   const { date } = await ctx.params
@@ -55,6 +42,9 @@ export async function PUT(req: Request, ctx: RouteContext<'/api/days/[date]'>) {
         transcript: b.transcript,
         summary: b.summary,
         score: b.score,
+        productive: b.productive,
+        focus: b.focus,
+        from_memory: b.fromMemory,
         mode: b.mode,
         duration_sec: b.durationSec,
         timezone: b.timezone,

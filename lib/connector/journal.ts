@@ -4,7 +4,15 @@ import type { DaySummary } from '@/lib/summary'
 // Everything the AI connector can tell an AI about a person's journal.
 // Pure functions over saved days, so every answer is testable.
 
-export type SavedDay = { day_date: string; score: number; summary: DaySummary; transcript: Turn[] }
+export type SavedDay = {
+  day_date: string
+  score: number
+  summary: DaySummary
+  transcript: Turn[]
+  /** Optional 1-4 ratings; older days have none. */
+  productive?: number | null
+  focus?: number | null
+}
 export type Range = { start: string; end: string; note?: string }
 
 export const MAX_RANGE_DAYS = 366
@@ -112,6 +120,8 @@ export function dayBriefLine(d: SavedDay) {
     workoutMinutes: workedOut(d) ? d.summary.workout.minutes ?? 0 : null,
     drinks: drinks(d),
     cannabis: usedCannabis(d),
+    productive: d.productive ?? null,
+    focus: d.focus ?? null,
   }
 }
 
@@ -162,7 +172,7 @@ export function searchEntries(days: SavedDay[], text: string) {
   return { total: hits.length, truncated: hits.length > 30, results: hits.slice(0, 30) }
 }
 
-export const METRICS = ['score', 'sleep_hours', 'drinks', 'workout_minutes', 'worked_out', 'cannabis'] as const
+export const METRICS = ['score', 'sleep_hours', 'drinks', 'workout_minutes', 'worked_out', 'cannabis', 'productive', 'focus'] as const
 export type Metric = (typeof METRICS)[number]
 
 function metricValue(d: SavedDay, metric: Metric): number | null {
@@ -173,6 +183,8 @@ function metricValue(d: SavedDay, metric: Metric): number | null {
     case 'workout_minutes': return workedOut(d) ? d.summary.workout.minutes ?? null : 0
     case 'worked_out': return workedOut(d) ? 1 : 0
     case 'cannabis': return usedCannabis(d) ? 1 : 0
+    case 'productive': return d.productive ?? null
+    case 'focus': return d.focus ?? null
   }
 }
 

@@ -152,3 +152,12 @@ test('compareDays filters by tag, workout, drinks, cannabis and weekday', () => 
   // 2026-10-18 is a Sunday
   expect(compareDays(days, { weekday: 0 }, {}).groupA.days).toBe(2)
 })
+
+test('ratings flow into day lines and trends, skipping days without one', () => {
+  const rated = [{ ...days[0], productive: 4, focus: 3 }, { ...days[1], productive: null, focus: null }, days[2]]
+  expect(daySummaryLine(rated[0])).toMatchObject({ productive: 4, focus: 3 })
+  expect(daySummaryLine(rated[2])).toMatchObject({ productive: null, focus: null })
+  const t = trend(rated, 'productive')
+  expect(t.daysWithValue).toBe(1)
+  expect(t.average).toBe(4)
+})
