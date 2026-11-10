@@ -7,12 +7,12 @@ test('tokens come from the chosen design', () => {
   expect(DESIGN.radius).toBe(chosen.radius)
 })
 
-test('mood colors run rough (burnt orange) through neutral to great (teal)', () => {
+test('mood colors run rough (burnt orange) through neutral to great (green)', () => {
   expect(scoreColor(1)).toBe('#c4562a')
   expect(scoreColor(4)).toBe('#e0a185')
   expect(scoreColor(6)).toBe('#e3ddd4')
-  expect(scoreColor(8)).toBe('#7fb8c6')
-  expect(scoreColor(10)).toBe('#00809e')
+  expect(scoreColor(8)).toBe('#7db69f')
+  expect(scoreColor(10)).toBe('#178f6a')
   expect(scoreColor(null)).toBe('transparent')
 })
 

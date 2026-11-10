@@ -18,7 +18,7 @@ export const LAYERS: { id: Layer; label: string; icon: IconName }[] = [
 
 export type CalDay = { day_date: string; score: number; summary: DaySummary; productive: number | null; focus: number | null }
 
-const SAGE = '0, 128, 158' // teal (good / more)
+const SAGE = '23, 143, 106' // green (good / more)
 const TERRA = '196, 86, 42' // burnt orange (drinks)
 const rgba = (rgb: string, a: number) => `rgba(${rgb}, ${Math.round(a * 100) / 100})`
 const SURFACE = 'var(--surface)'

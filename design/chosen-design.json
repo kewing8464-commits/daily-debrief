@@ -14,7 +14,7 @@
     "text": "#1f1c19",
     "muted": "#6b645c",
     "accent": "#b84f25",
-    "accent2": "#00809e"
+    "accent2": "#178f6a"
   },
   "night": {
     "bg": "#2f2b28",
@@ -22,13 +22,13 @@
     "text": "#f6f0e8",
     "muted": "#c4b8ab",
     "accent": "#e07b48",
-    "accent2": "#1e9cc4"
+    "accent2": "#26a37a"
   },
   "chart": {
-    "good": "#00809e",
+    "good": "#178f6a",
     "rough": "#c4562a",
     "neutral": "#e3ddd4",
-    "goodNight": "#1e9cc4",
+    "goodNight": "#26a37a",
     "roughNight": "#d06f42"
   },
   "glass": "rgba(214, 209, 202, 0.70)",

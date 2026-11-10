@@ -11,9 +11,9 @@ export const DESIGN = {
 export const NIGHT = chosen.night
 export const CHART = chosen.chart
 
-// Day mood is a diverging scale: rough (burnt orange) -> neutral -> great (teal), two scores per step.
+// Day mood is a diverging scale: rough (burnt orange) -> neutral -> great (green), two scores per step.
 // The pair passes the colorblind checks (dataviz validate_palette.js, light and dark).
-const SCORE_STEPS = ['#c4562a', '#e0a185', '#e3ddd4', '#7fb8c6', '#00809e']
+const SCORE_STEPS = ['#c4562a', '#e0a185', '#e3ddd4', '#7db69f', '#178f6a']
 const SCORE_INK = ['#ffffff', '#1f1c19', '#1f1c19', '#1f1c19', '#ffffff']
 
 const step = (score: number) => Math.ceil(Math.min(10, Math.max(1, Math.round(score))) / 2) - 1
