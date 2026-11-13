@@ -79,7 +79,7 @@ export default function SettingsPage() {
         <label className="flex items-center justify-between gap-3">
           <span>
             Nightly debrief time
-            <span className="block text-xs text-muted">Reminders arrive in a later update.</span>
+            <span className="block text-xs text-muted">Your nightly vibe check. Turn on reminders below.</span>
           </span>
           <input type="time" value={time} onChange={(e) => saveTime(e.target.value)} className="rounded-card border border-line bg-bg px-2 py-2" />
         </label>
