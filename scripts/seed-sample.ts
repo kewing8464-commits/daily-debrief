@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js'
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } })
 
 // Small seeded random so the same command always makes the same month.
-let seed = 42
+let seed = Number(process.env.SEED) || 42 // SEED=n changes which days get skipped as gaps
 const rand = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646
 const pick = <T>(xs: T[]) => xs[Math.floor(rand() * xs.length)]
 
