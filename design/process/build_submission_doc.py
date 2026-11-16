@@ -236,34 +236,9 @@ bullets([
 
 # ------------------------------------------------------------------ 5
 page_break()
-doc.add_heading('5. Development reflection (about 300 to 500 words)', 1)
-p('[KARSON: write this section in your own words. The facts below are from the project record to help you.]', bold=None, color=ACCENT, italic=True)
-for q, facts in [
-    ('Which AI tools you used and how they assisted development', [
-        'Claude Code (an AI coding agent) wrote the code from my direction: brainstorming questions, clickable design mockups, a written spec, task-by-task build plans, test-first coding, browser testing, and a separate AI reviewer before each release.',
-        'Groq (free) runs the interview model and Whisper speech-to-text inside the app; Claude reads the journal through the connector I built.',
-    ]),
-    ('The most significant technical or analytical challenge', [
-        'Option: making the insights honest. "Your recipe for a good day" had to avoid noise and false causes (4-day minimum, the "also true" confounder list, patterns-not-proof wording).',
-        'Option: a reviewer found the insights math giving advice that contradicted the data, double-counting a person written two ways, and a "7-day average" that was really the last 7 entries.',
-    ]),
-    ('How you diagnosed and resolved it', [
-        'Each problem was reproduced with a test that failed first, then fixed until it passed (for example the rounding test with 7.25 and 6.04).',
-        'The live debrief crash on Nov 10: server logs showed no error, the wording pointed to a browser-side error, and the timing matched a deploy, so the fix was an automatic reload plus error reporting.',
-    ]),
-    ('What your AI assistant handled well and where it struggled', [
-        'Well: writing and testing code quickly, catching its own bugs in review, keeping a decision log.',
-        'Struggled: it left a placeholder setting that broke AI summaries locally, an old browser tab crashed after a deploy, and its first color choices failed a colorblind check until it ran the validator.',
-    ]),
-    ('What required human analytical judgment', [
-        'Deciding what to track and what counts as a good day; rejecting a body-fat estimate because weight, food and workouts cannot reliably separate fat from muscle; choosing honest wording over impressive claims; picking the design.',
-    ]),
-    ('Would you trust it for real decisions, and what safeguards are needed', [
-        'For personal reflection, yes, with care. For real decisions: more data per pattern, statistical significance tests, confirming AI summaries before saving (already required), and treating every pattern as a hypothesis to test, not a cause.',
-    ]),
-]:
-    p(q, bold=None, after=1).runs[0].bold = True
-    bullets(facts)
+doc.add_heading('5. Development reflection', 1)
+for para in open(ROOT / 'design/process/reflection.txt').read().strip().split('\n\n'):
+    p(para, after=7)
 
 # ------------------------------------------------------------------ 6
 doc.add_heading('6. Team contribution and project defense', 1)
